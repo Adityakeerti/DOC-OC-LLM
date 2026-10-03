@@ -1,0 +1,68 @@
+{
+  "board": "Council for the Indian School Certificate Examinations, New Delhi",
+  "examination": "Indian School Certificate Examination (Class - XII) - Year 2023",
+  "student_info": {
+    "name": "DEVANG SHARMA",
+    "roll_no": "BG 90094366",
+    "enrollment_no": "7396962",
+    "father_name": "MAHENDRA KUMAR SHARMA",
+    "mother_name": "CHHAVI SHARMA",
+    "school_name": "ST. JOSEPH'S ACADEMY, DEHRA DUN"
+  },
+  "subjects": [
+    {
+      "name": "ENGLISH",
+      "theory": null,
+      "practical": null,
+      "total": 86.0,
+      "max_marks": 100.0,
+      "grade": "EIGHT SIX"
+    },
+    {
+      "name": "PSYCHOLOGY",
+      "theory": null,
+      "practical": null,
+      "total": 78.0,
+      "max_marks": 100.0,
+      "grade": "SEVEN EIGHT"
+    },
+    {
+      "name": "MATHEMATICS",
+      "theory": null,
+      "practical": null,
+      "total": 64.0,
+      "max_marks": 100.0,
+      "grade": "SIX FOUR"
+    },
+    {
+      "name": "PHYSICS",
+      "theory": null,
+      "practical": null,
+      "total": 87.0,
+      "max_marks": 100.0,
+      "grade": "EIGHT SEVEN"
+    },
+    {
+      "name": "CHEMISTRY",
+      "theory": null,
+      "practical": null,
+      "total": 68.0,
+      "max_marks": 100.0,
+      "grade": "SIX EIGHT"
+    },
+    {
+      "name": "SUPW AND COMMUNITY SERVICE",
+      "theory": null,
+      "practical": null,
+      "total": null,
+      "max_marks": null,
+      "grade": "A"
+    }
+  ],
+  "result": {
+    "total_obtained": 383.0,
+    "maximum_marks": 500.0,
+    "percentage": "76.6%",
+    "status": "PASS"
+  }
+}

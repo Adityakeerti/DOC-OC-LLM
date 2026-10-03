@@ -1,0 +1,60 @@
+{
+  "board": "Central Board of Secondary Education, Delhi",
+  "examination": "Secondary School Examination (Session : 2011-2013)",
+  "student_info": {
+    "name": "AJAY",
+    "roll_no": "2158156",
+    "father_name": "JAWAHAR LAL",
+    "mother_name": "ASHA RANI",
+    "school_name": "04015-K V NO. 1 CHANDIMANDIR CANTT HARYANA",
+    "dob": "28/10/1997"
+  },
+  "subjects": [
+    {
+      "name": "ENGLISH COMM.",
+      "theory": null,
+      "practical": null,
+      "total": null,
+      "max_marks": null,
+      "grade": "A1"
+    },
+    {
+      "name": "HINDI COURSE-A",
+      "theory": null,
+      "practical": null,
+      "total": null,
+      "max_marks": null,
+      "grade": "A1"
+    },
+    {
+      "name": "MATHEMATICS",
+      "theory": null,
+      "practical": null,
+      "total": null,
+      "max_marks": null,
+      "grade": "A1"
+    },
+    {
+      "name": "SCIENCE",
+      "theory": null,
+      "practical": null,
+      "total": null,
+      "max_marks": null,
+      "grade": "A1"
+    },
+    {
+      "name": "SOCIAL SCIENCE",
+      "theory": null,
+      "practical": null,
+      "total": null,
+      "max_marks": null,
+      "grade": "A1"
+    }
+  ],
+  "result": {
+    "total_obtained": null,
+    "maximum_marks": null,
+    "percentage": "CGPA 10.0",
+    "status": "PASS"
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "board": "Central Board of Secondary Education",
+  "examination": "All India Senior School Certificate Examination, 2008",
+  "student_info": {
+    "name": "ABHINAV BISWAS",
+    "roll_no": "5652695",
+    "father_name": "KARUNAMOY BISWAS",
+    "mother_name": "APARNA BISWAS",
+    "school_name": "08468 ARMY SCHOOL BARRACKPORE CANTT 24 PARGANAS WB"
+  },
+  "subjects": [
+    {
+      "name": "ENGLISH CORE",
+      "theory": 87.0,
+      "practical": null,
+      "total": 87.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "MATHEMATICS",
+      "theory": 95.0,
+      "practical": null,
+      "total": 95.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "PHYSICS",
+      "theory": 58.0,
+      "practical": 30.0,
+      "total": 88.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "CHEMISTRY",
+      "theory": 66.0,
+      "practical": 29.0,
+      "total": 95.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "COMPUTER SCIENCE",
+      "theory": 62.0,
+      "practical": 30.0,
+      "total": 92.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "PHYSICAL EDUCATION",
+      "theory": 65.0,
+      "practical": 23.0,
+      "total": 88.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    }
+  ],
+  "result": {
+    "total_obtained": 545.0,
+    "maximum_marks": 600.0,
+    "percentage": "90.83%",
+    "status": "PASS"
+  }
+}

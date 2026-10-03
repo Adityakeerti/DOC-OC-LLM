@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+.venv/
+env/
+venv/
+ENV/
+
+# Environment Variables & Secrets
+.env
+*.pem
+*.key
+
+# Model weights & large binaries (keep git repo light)
+*.gguf
+*.bin
+*.pt
+*.pth
+*.onnx
+*.tar.gz
+
+# Cache & Temporary files
+.cache/
+*.log
+.DS_Store

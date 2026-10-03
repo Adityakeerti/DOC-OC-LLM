@@ -1,0 +1,59 @@
+{
+  "board": "Board of School Education Uttarakhand",
+  "examination": "Intermediate Examination - 2023",
+  "student_info": {
+    "name": "ROHIT PATHAK",
+    "roll_no": "23374475",
+    "father_name": "NAVEEN CHANDRA PATHAK",
+    "mother_name": "GEETA PATHAK",
+    "school_name": "K.M.S.B. HIMALAYA INTER COLLEGE CHAUKORI, PITHORAGARH"
+  },
+  "subjects": [
+    {
+      "name": "HINDI",
+      "theory": 70.0,
+      "practical": 20.0,
+      "total": 90.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "MATHEMATICS",
+      "theory": 54.0,
+      "practical": 20.0,
+      "total": 74.0,
+      "max_marks": 100.0,
+      "grade": "A2"
+    },
+    {
+      "name": "PHYSICS",
+      "theory": 40.0,
+      "practical": 30.0,
+      "total": 70.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "CHEMISTRY",
+      "theory": 59.0,
+      "practical": 30.0,
+      "total": 89.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "ENGLISH",
+      "theory": 77.0,
+      "practical": 19.0,
+      "total": 96.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    }
+  ],
+  "result": {
+    "total_obtained": 419.0,
+    "maximum_marks": 500.0,
+    "percentage": "83.8%",
+    "status": "PASS"
+  }
+}

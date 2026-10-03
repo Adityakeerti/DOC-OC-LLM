@@ -1,0 +1,91 @@
+{
+  "board": "Central Board of Secondary Education",
+  "examination": "Senior School Certificate Examination, 2023",
+  "student_info": {
+    "name": "VANSH JAISWAL",
+    "roll_no": "25618434",
+    "father_name": "RAJU JAISWAL",
+    "mother_name": "MANJU JAISWAL",
+    "school_name": "SAPIENCE SCHOOL VIKAS NAGAR DEHRADUN UK"
+  },
+  "subjects": [
+    {
+      "name": "English Core",
+      "theory": 62.0,
+      "practical": 20.0,
+      "total": 82.0,
+      "max_marks": 100.0,
+      "grade": "B1"
+    },
+    {
+      "name": "Mathematics",
+      "theory": 34.0,
+      "practical": 20.0,
+      "total": 54.0,
+      "max_marks": 100.0,
+      "grade": "C2"
+    },
+    {
+      "name": "Physics",
+      "theory": 40.0,
+      "practical": 28.0,
+      "total": 68.0,
+      "max_marks": 100.0,
+      "grade": "B2"
+    },
+    {
+      "name": "Chemistry",
+      "theory": 40.0,
+      "practical": 30.0,
+      "total": 70.0,
+      "max_marks": 100.0,
+      "grade": "B2"
+    },
+    {
+      "name": "Painting",
+      "theory": 26.0,
+      "practical": 70.0,
+      "total": 96.0,
+      "max_marks": 100.0,
+      "grade": "A2"
+    },
+    {
+      "name": "Computer Science",
+      "theory": 60.0,
+      "practical": 30.0,
+      "total": 90.0,
+      "max_marks": 100.0,
+      "grade": "A2"
+    },
+    {
+      "name": "Work Experience",
+      "theory": null,
+      "practical": null,
+      "total": null,
+      "max_marks": null,
+      "grade": "A1"
+    },
+    {
+      "name": "Health & Physical Education",
+      "theory": null,
+      "practical": null,
+      "total": null,
+      "max_marks": null,
+      "grade": "A1"
+    },
+    {
+      "name": "General Studies",
+      "theory": null,
+      "practical": null,
+      "total": null,
+      "max_marks": null,
+      "grade": "A1"
+    }
+  ],
+  "result": {
+    "total_obtained": 460.0,
+    "maximum_marks": 500.0,
+    "percentage": "92.0%",
+    "status": "PASS"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "board": "Board of School Education Uttarakhand",
+  "examination": "Intermediate Examination - 2023",
+  "student_info": {
+    "name": "KUNWAR KAPIL SINGH KARKI",
+    "roll_no": "23374463",
+    "father_name": "JAGJIT SINGH",
+    "mother_name": "BHARTI KARKI",
+    "school_name": "K.M.S.B. HIMALAYA INTER COLLEGE CHAUKORI, PITHORAGARH"
+  },
+  "subjects": [
+    {
+      "name": "HINDI",
+      "theory": 54.0,
+      "practical": 20.0,
+      "total": 74.0,
+      "max_marks": 100.0,
+      "grade": "B1"
+    },
+    {
+      "name": "MATHEMATICS",
+      "theory": 53.0,
+      "practical": 20.0,
+      "total": 73.0,
+      "max_marks": 100.0,
+      "grade": "A2"
+    },
+    {
+      "name": "PHYSICS",
+      "theory": 26.0,
+      "practical": 30.0,
+      "total": 56.0,
+      "max_marks": 100.0,
+      "grade": "B2"
+    },
+    {
+      "name": "CHEMISTRY",
+      "theory": 44.0,
+      "practical": 30.0,
+      "total": 74.0,
+      "max_marks": 100.0,
+      "grade": "A2"
+    },
+    {
+      "name": "ENGLISH",
+      "theory": 60.0,
+      "practical": 19.0,
+      "total": 79.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    }
+  ],
+  "result": {
+    "total_obtained": 356.0,
+    "maximum_marks": 500.0,
+    "percentage": "71.2%",
+    "status": "PASS"
+  }
+}

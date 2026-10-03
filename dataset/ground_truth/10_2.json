@@ -1,0 +1,68 @@
+{
+  "board": "Board of School Education Uttarakhand",
+  "examination": "High School Examination - 2021",
+  "student_info": {
+    "name": "KUNWAR KAPIL SINGH KARKI",
+    "roll_no": "21085505",
+    "father_name": "JAGJIT SINGH",
+    "mother_name": "BHARATI DEVI",
+    "school_name": "K.M.S.B. HIMALAYA I.C. CHOUKORI, PITHORAGARH",
+    "dob": "04-05-2004"
+  },
+  "subjects": [
+    {
+      "name": "HINDI",
+      "theory": 79.0,
+      "practical": null,
+      "total": 79.0,
+      "max_marks": 100.0,
+      "grade": "A2"
+    },
+    {
+      "name": "ENGLISH",
+      "theory": 83.0,
+      "practical": null,
+      "total": 83.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "MATHEMATICS",
+      "theory": 71.0,
+      "practical": 20.0,
+      "total": 91.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "SCIENCE",
+      "theory": 60.0,
+      "practical": 20.0,
+      "total": 80.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "SOCIAL SCIENCE",
+      "theory": 72.0,
+      "practical": 20.0,
+      "total": 92.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "SANSKRIT",
+      "theory": 82.0,
+      "practical": null,
+      "total": 82.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    }
+  ],
+  "result": {
+    "total_obtained": 425.0,
+    "maximum_marks": 500.0,
+    "percentage": "85.0%",
+    "status": "PASS"
+  }
+}

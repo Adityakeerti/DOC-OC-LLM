@@ -1,0 +1,68 @@
+{
+  "board": "Central Board of Secondary Education",
+  "examination": "Secondary School Examination, 2021",
+  "student_info": {
+    "name": "VANSH JAISWAL",
+    "roll_no": "25114139",
+    "father_name": "RAJU JAISWAL",
+    "mother_name": "MANJU JAISWAL",
+    "school_name": "SAPIENCE SCHOOL VIKAS NAGAR DEHRADUN UK",
+    "dob": "21-10-2004"
+  },
+  "subjects": [
+    {
+      "name": "English Lng & Lit.",
+      "theory": 80.0,
+      "practical": 20.0,
+      "total": 100.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "Hindi Course-A",
+      "theory": 70.0,
+      "practical": 20.0,
+      "total": 90.0,
+      "max_marks": 100.0,
+      "grade": "A2"
+    },
+    {
+      "name": "Mathematics Standard",
+      "theory": 77.0,
+      "practical": 20.0,
+      "total": 97.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "Science",
+      "theory": 75.0,
+      "practical": 20.0,
+      "total": 95.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    },
+    {
+      "name": "Social Science",
+      "theory": 72.0,
+      "practical": 20.0,
+      "total": 92.0,
+      "max_marks": 100.0,
+      "grade": "A2"
+    },
+    {
+      "name": "Information Technology",
+      "theory": 50.0,
+      "practical": 50.0,
+      "total": 100.0,
+      "max_marks": 100.0,
+      "grade": "A1"
+    }
+  ],
+  "result": {
+    "total_obtained": 574.0,
+    "maximum_marks": 600.0,
+    "percentage": "95.67%",
+    "status": "PASS"
+  }
+}

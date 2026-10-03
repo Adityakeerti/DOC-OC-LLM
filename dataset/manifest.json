@@ -1,0 +1,382 @@
+{
+  "dataset_name": "DOC-OC Marksheet Benchmark & Training Dataset",
+  "version": "6.0",
+  "total_images": 37,
+  "split_counts": {
+    "train": 25,
+    "validation": 6,
+    "test": 6
+  },
+  "records": [
+    {
+      "filename": "10_1.jpg",
+      "board": "CISCE (ICSE/ISC)",
+      "width": 1118,
+      "height": 1584,
+      "format": "JPEG",
+      "size_kb": 411.7,
+      "split": "test",
+      "has_ground_truth": true
+    },
+    {
+      "filename": "10_10.jpg",
+      "board": "General / Multi-board",
+      "width": 887,
+      "height": 1280,
+      "format": "JPEG",
+      "size_kb": 146.8,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "10_11.jpg",
+      "board": "General / Multi-board",
+      "width": 2714,
+      "height": 3817,
+      "format": "JPEG",
+      "size_kb": 534.1,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "10_12.jpg",
+      "board": "General / Multi-board",
+      "width": 4096,
+      "height": 2304,
+      "format": "JPEG",
+      "size_kb": 2861.7,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "10_13.jpg",
+      "board": "General / Multi-board",
+      "width": 4096,
+      "height": 2304,
+      "format": "JPEG",
+      "size_kb": 2116.0,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "10_2.jpg",
+      "board": "UBSE (Uttarakhand)",
+      "width": 3000,
+      "height": 4000,
+      "format": "JPEG",
+      "size_kb": 2592.6,
+      "split": "test",
+      "has_ground_truth": true
+    },
+    {
+      "filename": "10_3.jpg",
+      "board": "CBSE",
+      "width": 1190,
+      "height": 1682,
+      "format": "JPEG",
+      "size_kb": 463.0,
+      "split": "test",
+      "has_ground_truth": true
+    },
+    {
+      "filename": "10_4.jpg",
+      "board": "UBSE (Uttarakhand)",
+      "width": 1190,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 559.8,
+      "split": "validation",
+      "has_ground_truth": true
+    },
+    {
+      "filename": "10_5.jpg",
+      "board": "General / Multi-board",
+      "width": 1191,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 452.7,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "10_6.jpg",
+      "board": "General / Multi-board",
+      "width": 1190,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 703.3,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "10_7.jpg",
+      "board": "General / Multi-board",
+      "width": 1190,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 675.0,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "10_8.jpg",
+      "board": "General / Multi-board",
+      "width": 1190,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 653.4,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "10_9.jpg",
+      "board": "General / Multi-board",
+      "width": 1190,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 603.3,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "12_1.jpg",
+      "board": "CISCE (ICSE/ISC)",
+      "width": 1069,
+      "height": 1584,
+      "format": "JPEG",
+      "size_kb": 292.8,
+      "split": "test",
+      "has_ground_truth": true
+    },
+    {
+      "filename": "12_10.jpg",
+      "board": "General / Multi-board",
+      "width": 887,
+      "height": 1280,
+      "format": "JPEG",
+      "size_kb": 146.8,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "12_11.jpg",
+      "board": "General / Multi-board",
+      "width": 2714,
+      "height": 3817,
+      "format": "JPEG",
+      "size_kb": 534.1,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "12_12.jpg",
+      "board": "General / Multi-board",
+      "width": 4096,
+      "height": 2304,
+      "format": "JPEG",
+      "size_kb": 3382.6,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "12_13.jpg",
+      "board": "General / Multi-board",
+      "width": 4096,
+      "height": 2304,
+      "format": "JPEG",
+      "size_kb": 2116.0,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "12_2.jpg",
+      "board": "UBSE (Uttarakhand)",
+      "width": 3000,
+      "height": 4000,
+      "format": "JPEG",
+      "size_kb": 1928.8,
+      "split": "validation",
+      "has_ground_truth": true
+    },
+    {
+      "filename": "12_3.jpg",
+      "board": "CBSE",
+      "width": 1190,
+      "height": 1682,
+      "format": "JPEG",
+      "size_kb": 470.9,
+      "split": "test",
+      "has_ground_truth": true
+    },
+    {
+      "filename": "12_4.jpg",
+      "board": "UBSE (Uttarakhand)",
+      "width": 1224,
+      "height": 2016,
+      "format": "JPEG",
+      "size_kb": 674.2,
+      "split": "test",
+      "has_ground_truth": true
+    },
+    {
+      "filename": "12_5.jpg",
+      "board": "General / Multi-board",
+      "width": 1191,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 424.4,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "12_6.jpg",
+      "board": "General / Multi-board",
+      "width": 1190,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 796.9,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "12_7.jpg",
+      "board": "General / Multi-board",
+      "width": 1190,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 701.0,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "12_8.jpg",
+      "board": "General / Multi-board",
+      "width": 1190,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 676.1,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "12_9.jpg",
+      "board": "General / Multi-board",
+      "width": 1190,
+      "height": 1684,
+      "format": "JPEG",
+      "size_kb": 592.3,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "cbse_border_1.png",
+      "board": "CBSE",
+      "width": 616,
+      "height": 752,
+      "format": "PNG",
+      "size_kb": 428.1,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "cbse_sample_abhinav.jpg",
+      "board": "CBSE",
+      "width": 1200,
+      "height": 1005,
+      "format": "JPEG",
+      "size_kb": 329.7,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "cbse_sample_ajay.jpg",
+      "board": "CBSE",
+      "width": 2164,
+      "height": 3040,
+      "format": "JPEG",
+      "size_kb": 1503.9,
+      "split": "validation",
+      "has_ground_truth": true
+    },
+    {
+      "filename": "cbse_sample_corrected.jpg",
+      "board": "CBSE",
+      "width": 1200,
+      "height": 1005,
+      "format": "JPEG",
+      "size_kb": 343.8,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "cbse_sample_shashank.jpg",
+      "board": "CBSE",
+      "width": 1169,
+      "height": 850,
+      "format": "JPEG",
+      "size_kb": 233.5,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "cbse_sample_shashank12.jpg",
+      "board": "CBSE",
+      "width": 1169,
+      "height": 850,
+      "format": "JPEG",
+      "size_kb": 216.2,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "haryana_10th.png",
+      "board": "BSEH (Haryana)",
+      "width": 702,
+      "height": 950,
+      "format": "PNG",
+      "size_kb": 1022.1,
+      "split": "validation",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "haryana_12th.png",
+      "board": "BSEH (Haryana)",
+      "width": 497,
+      "height": 704,
+      "format": "PNG",
+      "size_kb": 729.6,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "icse_green.png",
+      "board": "CISCE (ICSE/ISC)",
+      "width": 650,
+      "height": 811,
+      "format": "PNG",
+      "size_kb": 1041.8,
+      "split": "train",
+      "has_ground_truth": false
+    },
+    {
+      "filename": "state_sample_ms7.jpg",
+      "board": "General / Multi-board",
+      "width": 1024,
+      "height": 800,
+      "format": "JPEG",
+      "size_kb": 226.5,
+      "split": "validation",
+      "has_ground_truth": true
+    },
+    {
+      "filename": "up_board_10th.png",
+      "board": "UPMSP (Uttar Pradesh)",
+      "width": 522,
+      "height": 702,
+      "format": "PNG",
+      "size_kb": 756.4,
+      "split": "validation",
+      "has_ground_truth": false
+    }
+  ]
+}

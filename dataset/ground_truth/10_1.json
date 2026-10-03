@@ -1,0 +1,77 @@
+{
+  "board": "Council for the Indian School Certificate Examinations, New Delhi",
+  "examination": "Indian Certificate of Secondary Education (Class - X) - Year 2021",
+  "student_info": {
+    "name": "DEVANG SHARMA",
+    "roll_no": "TT 40195250",
+    "enrollment_no": "7396962",
+    "father_name": "MAHENDRA KUMAR SHARMA",
+    "mother_name": "CHHAVI SHARMA",
+    "school_name": "ST. JOSEPH'S ACADEMY, DEHRA DUN",
+    "dob": "23.10.2005"
+  },
+  "subjects": [
+    {
+      "name": "English",
+      "theory": null,
+      "practical": null,
+      "total": 89.0,
+      "max_marks": 100.0,
+      "grade": null
+    },
+    {
+      "name": "Hindi",
+      "theory": null,
+      "practical": null,
+      "total": 99.0,
+      "max_marks": 100.0,
+      "grade": null
+    },
+    {
+      "name": "History, Civics & Geography",
+      "theory": null,
+      "practical": null,
+      "total": 89.0,
+      "max_marks": 100.0,
+      "grade": null
+    },
+    {
+      "name": "Mathematics",
+      "theory": null,
+      "practical": null,
+      "total": 79.0,
+      "max_marks": 100.0,
+      "grade": null
+    },
+    {
+      "name": "Science",
+      "theory": null,
+      "practical": null,
+      "total": 81.0,
+      "max_marks": 100.0,
+      "grade": null
+    },
+    {
+      "name": "Computer Applications",
+      "theory": null,
+      "practical": null,
+      "total": 86.0,
+      "max_marks": 100.0,
+      "grade": null
+    },
+    {
+      "name": "SUPW and Community Service",
+      "theory": null,
+      "practical": null,
+      "total": null,
+      "max_marks": null,
+      "grade": "A"
+    }
+  ],
+  "result": {
+    "total_obtained": null,
+    "maximum_marks": null,
+    "percentage": "89%",
+    "status": "PASS"
+  }
+}

@@ -1,0 +1,234 @@
+================================================================================
+               DOC-OC v6 — PIPELINE VERIFICATION & BENCHMARK
+================================================================================
+Execution Date : 2026-10-03 23:24:13
+Model In Use   : UI-TARS-7B-DPO (Local Document/Form Specialist via llama-server on port 8080)
+Inference Mode : Direct Vision-Language Model Extraction (Zero OCR / Zero Regex)
+================================================================================
+
+--------------------------------------------------------------------------------
+TEST 1: FastAPI Endpoint Verification (POST /process)
+--------------------------------------------------------------------------------
+HTTP Status Code : 200
+Response Status  : SUCCESS in 35.81s
+Timing Breakdown : Preprocess: 0.01s | Extract: 35.78s | Validate: 0.0s
+Extracted Board  : CISCE
+Candidate Name   : DEVANG SHARMA
+Total Subjects   : 7
+Overall Result   : PASS
+API Test Result  : PASSED [OK]
+
+--------------------------------------------------------------------------------
+TEST 2: Diverse Marksheet Extraction Across Dataset (UI-TARS-7B-DPO)
+--------------------------------------------------------------------------------
+
+[1/8] Processing: 10_1.jpg
+------------------------------------------------------------
+  • Board Name    : CISCE
+  • Examination   : ICSE
+  • Student Name  : DEVANG SHARMA
+  • Roll Number   : 7396962
+  • School/Inst   : ST. JOSEPH'S ACADEMY,DEHRA DUN
+  • Result Status : PASS (Percentage/Total: 90.53%)
+  • Subjects (7):
+      - ENGLISH                        : Th:83.0 | Pr:0.0 | Tot:83.0 | Grd:8
+      - HINDI                          : Th:99.0 | Pr:0.0 | Tot:99.0 | Grd:9
+      - HISTORY, CIVICS & GEOGRAPHY    : Th:88.0 | Pr:0.0 | Tot:88.0 | Grd:9
+      - MATHEMATICS                    : Th:79.0 | Pr:0.0 | Tot:79.0 | Grd:7
+      - SCIENCE                        : Th:76.0 | Pr:75.0 | Tot:151.0 | Grd:8
+      - COMPUTER APPLICATIONS          : Th:86.0 | Pr:0.0 | Tot:86.0 | Grd:8
+      - INTERNAL ASSESSMENT            : Th:0.0 | Pr:0.0 | Tot:0.0 | Grd:A
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.01s | VLM: 33.22s | Val: 0.00s | Total: 33.23s
+
+[2/8] Processing: 10_2.jpg
+------------------------------------------------------------
+  • Board Name    : Uttarakhand Board of School Education
+  • Examination   : HIGH SCHOOL EXAMINATION - 2021
+  • Student Name  : JAGJIT SINGH KARKI
+  • Roll Number   : 21085505
+  • School/Inst   : KMSB.HIMALAYA I.C.CHOUKORI.PITHORAGARH
+  • Result Status : PASS (Percentage/Total: 85.00%)
+  • Subjects (7):
+      - HINDI                          : Th:79.0 | Pr:0.0 | Tot:79.0 | Grd:A2
+      - ENGLISH                        : Th:83.0 | Pr:0.0 | Tot:83.0 | Grd:A1
+      - MATHEMATICS                    : Th:71.0 | Pr:20.0 | Tot:91.0 | Grd:A1
+      - SCIENCE                        : Th:60.0 | Pr:20.0 | Tot:80.0 | Grd:A1
+      - SOCIAL SCIENCE                 : Th:72.0 | Pr:20.0 | Tot:92.0 | Grd:A1
+      - ADDITIONAL SUBJECT             : Th:82.0 | Pr:0.0 | Tot:82.0 | Grd:A1
+      - SANSKRIT                       : Th:0.0 | Pr:0.0 | Tot:0.0 | Grd:A1
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.15s | VLM: 40.46s | Val: 0.00s | Total: 40.61s
+
+[3/8] Processing: 10_3.jpg
+------------------------------------------------------------
+  • Board Name    : CENTRAL BOARD OF SECONDARY EDUCATION
+  • Examination   : SECONDARY SCHOOL EXAMINATION, 2021
+  • Student Name  : VANSH JAISWAL
+  • Roll Number   : 25114139
+  • School/Inst   : 81437 - SAPIENCE SCHOOL VIKAS NAGAR DEHADUN UK
+  • Result Status : PASS (Percentage/Total: 86.67%)
+  • Subjects (7):
+      - ENGLISH LNG & LIT.             : Th:80.0 | Pr:20.0 | Tot:100.0 | Grd:A1
+      - HINDI COURSE-A                 : Th:70.0 | Pr:20.0 | Tot:90.0 | Grd:A2
+      - MATHEMATICS STANDARD           : Th:77.0 | Pr:20.0 | Tot:97.0 | Grd:A1
+      - SCIENCE                        : Th:75.0 | Pr:20.0 | Tot:95.0 | Grd:A1
+      - SOCIAL SCIENCE                 : Th:72.0 | Pr:20.0 | Tot:92.0 | Grd:A2
+      - ADDITIONAL SUBJECT             : Th:50.0 | Pr:50.0 | Tot:100.0 | Grd:A1
+      - INFORMATION TECHNOLOGY         : Th:0.0 | Pr:0.0 | Tot:0.0 | Grd:A1
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.03s | VLM: 39.37s | Val: 0.00s | Total: 39.41s
+
+[4/8] Processing: 10_4.jpg
+------------------------------------------------------------
+  [ERROR] Extraction failed for 10_4.jpg: VLM returned invalid JSON: Expecting ',' delimiter: line 15 column 18 (char 395)
+Raw: {
+  "board": "Uttarakhand",
+  "examination": "HIGH SCHOOL EXAMINATION - 2021",
+  "student_info": {
+    "name": "ROHIT PATHAK GEETA PATHAK NAVEEN CHANDRA PATHAK",
+    "roll_no": "21085521",
+    "father_name": "null",
+    "mother_name": "null",
+    "school_name": "KMSB HIMALAYA I C CHOUKORI PITHORAGARH",
+    "dob": "01-11-2005"
+  },
+  "subjects": [
+    {
+      "name": "HINDI",
+      "theory": 077,
+      "practical": 0,
+      "total": 077,
+      "max_marks": 500,
+      "grade": "A2"
+    },
+    {
+  
+
+[5/8] Processing: 12_1.jpg
+------------------------------------------------------------
+  • Board Name    : CISCE
+  • Examination   : CLASS XII
+  • Student Name  : DEVANG SHARMA
+  • Roll Number   : 7396962
+  • School/Inst   : ST. JOSEPH'S ACADEMY, DEHRA DUN
+  • Result Status : PASS (Percentage/Total: 78.60%)
+  • Subjects (5):
+      - ENGLISH                        : Th:86.0 | Pr:0.0 | Tot:86.0 | Grd:EIGHT SIX
+      - PSYCHOLOGY                     : Th:78.0 | Pr:0.0 | Tot:78.0 | Grd:SEVEN EIGHT
+      - MATHEMATICS                    : Th:64.0 | Pr:0.0 | Tot:64.0 | Grd:SIX FOUR
+      - PHYSICS                        : Th:87.0 | Pr:0.0 | Tot:87.0 | Grd:EIGHT SEVEN
+      - CHEMISTRY                      : Th:68.0 | Pr:0.0 | Tot:68.0 | Grd:SIX EIGHT
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.01s | VLM: 29.45s | Val: 0.00s | Total: 29.46s
+
+[6/8] Processing: 12_2.jpg
+------------------------------------------------------------
+  [ERROR] Extraction failed for 12_2.jpg: VLM returned invalid JSON: Extra data: line 1 column 3 (char 2)
+Raw: 25th may 2023
+2023
+ regular
+23374463
+108/179
+regular
+full exam
+10805205
+
+kunwar capil singh karki
+bharti karki
+jagjeet singh
+kmsb himalaya inter college chaukori pithoragarh
+
+hindi
+mathematics
+physics
+chemistry
+english
+
+054
+053
+026
+044
+060
+020
+020
+030
+030
+019
+074
+073
+056
+074
+079
+seventy four
+seventy three
+fifty six
+seventy four
+seventy nine
+b1
+a2
+b2
+a2
+a1
+356/500
+passed
+first div.
+356/500
+passed
+first div.
+
+[7/8] Processing: 12_3.jpg
+------------------------------------------------------------
+  • Board Name    : CENTRAL BOARD OF SECONDARY EDUCATION
+  • Examination   : SENIOR SCHOOL CERTIFICATE EXAMINATION, 2023
+  • Student Name  : VANSH JAIswAL
+  • Roll Number   : 25618434
+  • School/Inst   : SAPIENCE SCHOOL VIKAS NAGAR DEHRADUN UK
+  • Result Status : PASS (Percentage/Total: 68.00%)
+  • Subjects (9):
+      - ENGLISH CORE                   : Th:62.0 | Pr:20.0 | Tot:82.0 | Grd:B1
+      - MATHEMATICS                    : Th:34.0 | Pr:20.0 | Tot:54.0 | Grd:C2
+      - PHYSICS                        : Th:40.0 | Pr:28.0 | Tot:68.0 | Grd:B2
+      - CHEMISTRY                      : Th:40.0 | Pr:30.0 | Tot:70.0 | Grd:B2
+      - PAINTING                       : Th:26.0 | Pr:70.0 | Tot:96.0 | Grd:A2
+      - COMPUTER SCIENCE               : Th:60.0 | Pr:30.0 | Tot:90.0 | Grd:A2
+      - WORK EXPERIENCE                : Th:0.0 | Pr:0.0 | Tot:0.0 | Grd:A1
+      - HEALTH & PHYSICAL EDUCATION    : Th:0.0 | Pr:0.0 | Tot:0.0 | Grd:A1
+      - GENERAL STUDIES                : Th:0.0 | Pr:0.0 | Tot:0.0 | Grd:A1
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.04s | VLM: 46.60s | Val: 0.00s | Total: 46.63s
+
+[8/8] Processing: 12_4.jpg
+------------------------------------------------------------
+  • Board Name    : Uttarakhand
+  • Examination   : INTERMEDIATE EXAMINATION - 2023
+  • Student Name  : ROHIT PATHAK
+  • Roll Number   : 23374475
+  • School/Inst   : KMSB HIMALAYA INTER COLLEGE CHAUKORI PITHORAGARH
+  • Result Status : PASS (Percentage/Total: 83.8%)
+  • Subjects (5):
+      - HINDI                          : Th:70.0 | Pr:20.0 | Tot:90.0 | Grd:A1
+      - MATHEMATICS                    : Th:54.0 | Pr:20.0 | Tot:74.0 | Grd:A2
+      - PHYSICS                        : Th:40.0 | Pr:30.0 | Tot:70.0 | Grd:A1
+      - CHEMISTRY                      : Th:59.0 | Pr:30.0 | Tot:89.0 | Grd:A1
+      - ENGLISH                        : Th:77.0 | Pr:19.0 | Tot:96.0 | Grd:A1
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.04s | VLM: 29.89s | Val: 0.00s | Total: 29.94s
+
+================================================================================
+                             BENCHMARK SUMMARY
+================================================================================
+Total Processed Marksheets : 8
+Successful Extractions     : 6/8 (75.0%)
+Average Time Per Document  : 36.55s
+Total Test Duration        : 219.28s
+
+Filename        | Board                          | Candidate            | Subjects | Status | Time
+-----------------------------------------------------------------------------------------------
+10_1.jpg        | CISCE                          | DEVANG SHARMA        | 7        | PASS   | 33.23s
+10_2.jpg        | Uttarakhand Board of School    | JAGJIT SINGH KARKI   | 7        | PASS   | 40.61s
+10_3.jpg        | CENTRAL BOARD OF SECONDARY E   | VANSH JAISWAL        | 7        | PASS   | 39.41s
+12_1.jpg        | CISCE                          | DEVANG SHARMA        | 5        | PASS   | 29.46s
+12_3.jpg        | CENTRAL BOARD OF SECONDARY E   | VANSH JAIswAL        | 9        | PASS   | 46.63s
+12_4.jpg        | Uttarakhand                    | ROHIT PATHAK         | 5        | PASS   | 29.94s
+================================================================================
