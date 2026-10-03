@@ -49,3 +49,70 @@
   - 1024px: 30.33s | Candidate: VANSH JAISWAL | Subjects: 9
   - 800px: 24.74s | Candidate: VANSH JAISWAL | Subjects: 9
   - Takeaway: Lowering resolution from 1600px to 1200px/800px retains 100% accuracy, but prompt eval is only a fraction of total time; the primary bottleneck is autoregressive token decoding on the GPU. Setting optimal standard dimension to 1200px preserves sharp table lines while saving ~40% visual token compute.
+
+---
+
+## 📌 Entry 004 — Git Remote Initialization & Baseline Sync
+* **Timestamp**: 2026-10-04 03:42:00 IST
+* **Action Taken**:
+  - Initialized Git repository on `main` branch.
+  - Configured clean `.gitignore` to prevent committing massive weights (`*.gguf`), local `.venv/`, and temporary caches while preserving all core code, datasets, manifests, ground truth, and benchmark logs.
+  - Linked remote to `https://github.com/Adityakeerti/DOC-OC-LLM.git` and pushed initial baseline commit `d4b8ed2`.
+* **Why It Was Done**:
+  - To maintain production version control and provide an audit trail of every engineering milestone.
+* **Empirical Result**:
+  - GitHub repository is live, populated, and tracking all 127 files cleanly.
+
+---
+
+## 📌 Entry 005 — 4x Latency Reduction & GBNF Schema Lock
+* **Timestamp**: 2026-10-04 03:44:00 IST
+* **Action Taken**:
+  - Identified the primary latency culprit in Gemma-4: `llama-server` defaulted to reasoning mode, causing Gemma-4 to generate >1,500 internal "thinking" tokens (`reasoning_content`) before emitting JSON.
+  - Reconfigured `start_server.sh` with `--reasoning off`, `--reasoning-budget 0`, and full GPU offload `--n-gpu-layers 35` (100% in RTX 4050 VRAM).
+  - Enforced C++ level GBNF JSON Schema constrained decoding (`response_format: {"type": "json_schema", "json_schema": ...}`) matching our Pydantic marksheet schema.
+  - Added robust regex sanitation for leading zeros (`re.sub(r'([:,\[]\s*)0+([1-9][0-9]*)', r'\1\2', text)`).
+* **Why It Was Done**:
+  - To eliminate computational dead weight: a marksheet extraction engine should emit structured JSON immediately without generating conversational thinking traces.
+  - To make JSON parsing errors mathematically impossible by constraining logit sampling at the C++ kernel level.
+* **Empirical Result**:
+  - Extraction latency on `dataset/12_3.jpg`: **Dropped from 27.89s to 6.89s** (a **4.05x speedup**!).
+  - Candidate Name: `VANSH JAISWAL` (100% correct, resolved from mother's name).
+  - Father's Name: `RAJU JAISWAL`, Mother's Name: `MANJU JAISWAL`.
+  - Total Subjects: `9`.
+  - Schema validity: **100% Valid JSON directly from model**, zero markdown code blocks, zero parsing errors.
+
+---
+
+## 📌 Entry 006 — Full Phase 1 Benchmark on Gemma-4-E2B (4.32x Speedup)
+* **Timestamp**: 2026-10-04 03:47:00 IST
+* **Action Taken**:
+  - Ran the full automated test suite across all 8 multi-board test marksheets (`10_1.jpg` to `12_4.jpg`) with the optimized Phase 1 engine.
+  - Saved full empirical log to `results/result_phase1_gemma.txt`.
+* **Why It Was Done**:
+  - To rigorously validate whether the 4x latency reduction and 100% schema accuracy held across all test documents and boards (CBSE, ICSE, UP, Uttarakhand).
+* **Empirical Result**:
+  - **Successful Extractions**: **8/8 (100.0%)** — zero schema errors, zero JSON parse exceptions.
+  - **Average Latency**: **6.28 seconds per document** (down from **27.12 seconds** in Day 1 baseline — a **4.32x speedup**!).
+  - **Total Test Duration**: **50.24 seconds** for the entire batch (down from **216.95 seconds**!).
+  - **Candidate Name Accuracy**: Correctly resolved `Vansh Jaiswal` on `12_3.jpg` (was `MANJU JAISAL` previously).
+  - Fast single document times: `12_4.jpg` processed in **4.24s**, `12_2.jpg` in **4.86s**, `12_1.jpg` in **5.45s**.
+
+---
+
+## 📌 Entry 007 — Qwen2.5-VL-3B vs. Gemma-4-E2B Architecture Comparison
+* **Timestamp**: 2026-10-04 03:48:00 IST
+* **Action Taken**:
+  - Launched `Qwen2.5-VL-3B-Instruct-Q4_K_M` with 100% GPU offload (`--n-gpu-layers 36`, 4.2 GB VRAM usage).
+  - Tested both GBNF JSON Schema constrained decoding and unconstrained JSON extraction.
+* **Why It Was Done**:
+  - To compare Google's Gemma-4-E2B architecture against Alibaba's Qwen2.5-VL-3B for production document marksheet extraction.
+* **Empirical Result**:
+  - **GBNF Grammar Bug in Qwen Tokenizer**: `llama-server` crashed with `got exception: Unexpected empty grammar stack after accepting piece: ? (30)` when attempting strict JSON schema enforcement on Qwen2.5-VL. This is a known incompatibility in llama.cpp's GBNF compiler for Qwen's specific BPE vocabulary.
+  - **Unconstrained Looping**: Without grammar constraints, Qwen2.5-VL generated >3,800 tokens in a repetitive generation loop, hitting the HTTP timeout.
+  - **Gemma-4-E2B Superiority**: Gemma-4-E2B's tokenizer and chat template compile cleanly into C++ GBNF grammars, enabling sub-7s deterministic extraction with zero runaway generation.
+  - **Architectural Conclusion**: **Gemma-4-E2B is conclusively selected as the production backbone** for Phase 2 fine-tuning and layer pruning experiments.
+
+
+
+

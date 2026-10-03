@@ -146,10 +146,11 @@ def run_all_tests():
         log(f"{r['file']:<15} | {b_str:<30} | {c_str:<20} | {r['subjects']:<8} | {r['status'] or 'N/A':<6} | {r['time']}s")
     log("=" * 80)
 
-    # Save to result.txt
-    with open("result.txt", "w", encoding="utf-8") as f:
+    # Save to results directory
+    out_file = sys.argv[1] if len(sys.argv) > 1 else "results/result_phase1_gemma.txt"
+    with open(out_file, "w", encoding="utf-8") as f:
         f.write("\n".join(output_lines) + "\n")
-    print("\n[SUCCESS] Benchmark results saved to result.txt")
+    print(f"\n[SUCCESS] Benchmark results saved to {out_file}")
 
 if __name__ == "__main__":
     run_all_tests()

@@ -85,10 +85,22 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
         expected = subj.theory + subj.practical
 
         if abs(expected - subj.total) > 1:
-            warnings.append(
-                f"{subj.name}: {subj.theory} + {subj.practical} = {expected}, "
-                f"but total shows {subj.total}"
-            )
+            # Self-healing: if model recorded maximum marks (e.g. 100) as total obtained,
+            # reconcile total = theory + practical and preserve maximum marks.
+            if subj.total in [100.0, 50.0, 75.0, 200.0] and expected < subj.total:
+                old_total = subj.total
+                if subj.max_marks is None:
+                    subj.max_marks = old_total
+                subj.total = expected
+                warnings.append(
+                    f"{subj.name}: Auto-reconciled total marks obtained to {expected} "
+                    f"({subj.theory} + {subj.practical}), max marks set to {old_total}"
+                )
+            else:
+                warnings.append(
+                    f"{subj.name}: {subj.theory} + {subj.practical} = {expected}, "
+                    f"but total shows {subj.total}"
+                )
 
     return warnings
 

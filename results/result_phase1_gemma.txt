@@ -1,0 +1,202 @@
+================================================================================
+               DOC-OC v6 — PIPELINE VERIFICATION & BENCHMARK
+================================================================================
+Execution Date : 2026-10-04 03:45:49
+Model In Use   : Gemma-4-E2B (Local VLM via llama-server on port 8080)
+Inference Mode : Direct Vision-Language Model Extraction (Zero OCR / Zero Regex)
+================================================================================
+
+--------------------------------------------------------------------------------
+TEST 1: FastAPI Endpoint Verification (POST /process)
+--------------------------------------------------------------------------------
+HTTP Status Code : 200
+Response Status  : SUCCESS in 10.55s
+Timing Breakdown : Preprocess: 0.03s | Extract: 10.5s | Validate: 0.0s
+Extracted Board  : CBSE
+Candidate Name   : Devang Sharma
+Total Subjects   : 15
+Overall Result   : PASS
+API Test Result  : PASSED [OK]
+
+--------------------------------------------------------------------------------
+TEST 2: Diverse Marksheet Extraction Across Dataset
+--------------------------------------------------------------------------------
+
+[1/8] Processing: 10_1.jpg
+------------------------------------------------------------
+  • Board Name    : CBSE
+  • Examination   : Class-X
+  • Student Name  : Devang Sharma
+  • Roll Number   : 7396962
+  • School/Inst   : N/A
+  • Result Status : PASS (Percentage/Total: 33%)
+  • Subjects (15):
+      - English                        : Tot:89.0 | Grd:Eight Nine
+      - English Language               : Tot:83.0 | Grd:Eight Nine
+      - Literature in English          : Tot:95.0 | Grd:Nine Nine
+      - Hindi                          : Tot:99.0 | Grd:Nine Nine
+      - History, Civics & Geography    : Tot:88.0 | Grd:Eight Eight
+      - History & Civics               : Tot:88.0 | Grd:Eight Eight
+      - Geography                      : Tot:89.0 | Grd:Eight Nine
+      - Mathematics                    : Tot:79.0 | Grd:Seven Nine
+      - Science                        : Tot:81.0 | Grd:Eight Eight
+      - Physics                        : Tot:76.0 | Grd:Eight One
+      - Chemistry                      : Tot:75.0 | Grd:Eight One
+      - Biology                        : Tot:91.0 | Grd:Nine One
+      - Computer Applications          : Tot:86.0 | Grd:Eight Six
+      - Internal Assessment            : Tot:86.0 | Grd:Eight Six
+      - SUPW and Community Service     : Tot:86.0 | Grd:Eight Six
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.03s | VLM: 9.83s | Val: 0.00s | Total: 9.86s
+
+[2/8] Processing: 10_2.jpg
+------------------------------------------------------------
+  • Board Name    : Uttar Pradesh
+  • Examination   : High School Examination - 2021
+  • Student Name  : KUNWAR KAPIL SINGH KARL
+  • Roll Number   : 21085505
+  • School/Inst   : N/A
+  • Result Status : PASS (Percentage/Total: 425/500)
+  • Subjects (7):
+      - HINDI                          : Tot:79.0 | Grd:A2
+      - ENGLISH                        : Tot:83.0 | Grd:A1
+      - MATHEMATICS                    : Tot:91.0 | Grd:A1
+      - SCIENCE                        : Tot:60.0 | Grd:A1
+      - SOCIAL SCIENCE                 : Tot:72.0 | Grd:A1
+      - ADDITIONAL SUBJECT             : Tot:82.0 | Grd:A1
+      - SANSKRIT                       : Tot:82.0 | Grd:A1
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.14s | VLM: 6.05s | Val: 0.00s | Total: 6.19s
+
+[3/8] Processing: 10_3.jpg
+------------------------------------------------------------
+  • Board Name    : Central Board of Secondary Education
+  • Examination   : Secondary School Examination, 2021
+  • Student Name  : VANSH JAISWAL
+  • Roll Number   : 2511439
+  • School/Inst   : SAPIENCE SCHOOL VIKAS NAGAR DEHRADUN UK
+  • Result Status : PASS (Percentage/Total: N/A)
+  • Subjects (7):
+      - ENGLISH LANG & LIT             : Th:180.0 | Pr:20.0 | Tot:200.0 | Grd:A1
+      - HINDI COURSE-A                 : Th:170.0 | Pr:30.0 | Tot:200.0 | Grd:A2
+      - MATHEMATICS STANDARD           : Th:170.0 | Pr:30.0 | Tot:200.0 | Grd:A1
+      - SCIENCE                        : Th:170.0 | Pr:30.0 | Tot:200.0 | Grd:A1
+      - SOCIAL SCIENCE                 : Th:170.0 | Pr:30.0 | Tot:200.0 | Grd:A2
+      - ADDITIONAL SUBJECT             : Th:170.0 | Pr:30.0 | Tot:200.0 | Grd:A1
+      - INFORMATION TECHNOLOGY         : Th:170.0 | Pr:30.0 | Tot:200.0 | Grd:A1
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.03s | VLM: 7.01s | Val: 0.00s | Total: 7.04s
+
+[4/8] Processing: 10_4.jpg
+------------------------------------------------------------
+  • Board Name    : Uttar Pradesh
+  • Examination   : High School Examination - 2021
+  • Student Name  : Rohit Pathak
+  • Roll Number   : 21085521
+  • School/Inst   : N/A
+  • Result Status : PASS (Percentage/Total: N/A)
+  • Subjects (7):
+      - Hindi                          : Tot:77.0 | Grd:A2
+      - English                        : Tot:89.0 | Grd:A1
+      - Mathematics                    : Tot:77.0 | Grd:A1
+      - Science                        : Tot:72.0 | Grd:A1
+      - Social Science                 : Tot:75.0 | Grd:A1
+      - Additional Subject             : Tot:80.0 | Grd:A1
+      - Sanskrit                       : Tot:80.0 | Grd:A1
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.03s | VLM: 5.97s | Val: 0.00s | Total: 6.00s
+
+[5/8] Processing: 12_1.jpg
+------------------------------------------------------------
+  • Board Name    : CBSE
+  • Examination   : Class-XII
+  • Student Name  : Devang Sharma
+  • Roll Number   : BG9094366
+  • School/Inst   : N/A
+  • Result Status : PASS (Percentage/Total: 35%)
+  • Subjects (8):
+      - External Examination           : Tot:86.0
+      - English                        : Tot:86.0
+      - Psychology                     : Tot:78.0
+      - Mathematics                    : Tot:64.0
+      - Physics                        : Tot:87.0
+      - Chemistry                      : Tot:68.0
+      - Internal Assessment            : Tot:100.0
+      - SUPW and Community Service     : Tot:100.0
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.02s | VLM: 5.42s | Val: 0.00s | Total: 5.45s
+
+[6/8] Processing: 12_2.jpg
+------------------------------------------------------------
+  • Board Name    : Uttarakhand Board
+  • Examination   : Intermediate Examination - 2023
+  • Student Name  : Son/Daughter of Mrs. and Mr. [Name not explicitly stated as candidate name]
+  • Roll Number   : 23374463
+  • School/Inst   : N/A
+  • Result Status : PASS (Percentage/Total: N/A)
+  • Subjects (5):
+      - HINDI                          : Tot:56.0 | Grd:B1
+      - MATHEMATICS                    : Tot:53.0 | Grd:A2
+      - PHYSICS                        : Tot:56.0 | Grd:B2
+      - CHEMISTRY                      : Tot:56.0 | Grd:A2
+      - ENGLISH                        : Tot:56.0 | Grd:A1
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.13s | VLM: 4.73s | Val: 0.00s | Total: 4.86s
+
+[7/8] Processing: 12_3.jpg
+------------------------------------------------------------
+  • Board Name    : Central Board of Secondary Education
+  • Examination   : Senior School Certificate Examination, 2023
+  • Student Name  : Vansh Jaiswal
+  • Roll Number   : 25618434
+  • School/Inst   : Sapience School Vikas Nagar Dehradun UK
+  • Result Status : PASS (Percentage/Total: N/A)
+  • Subjects (9):
+      - English Core                   : Tot:82.0 | Grd:B1
+      - Mathematics                    : Tot:54.0 | Grd:C2
+      - Physics                        : Tot:68.0 | Grd:B2
+      - Chemistry                      : Tot:70.0 | Grd:B2
+      - Painting                       : Tot:96.0 | Grd:A2
+      - Computer Science               : Tot:90.0 | Grd:A2
+      - Work Experience                : Tot:90.0 | Grd:A1
+      - Health & Physical Education    : Tot:90.0 | Grd:A1
+      - General Studies                : Tot:90.0 | Grd:A1
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.03s | VLM: 6.58s | Val: 0.00s | Total: 6.61s
+
+[8/8] Processing: 12_4.jpg
+------------------------------------------------------------
+  • Board Name    : Uttar Pradesh
+  • Examination   : Intermediate Examination - 2023
+  • Student Name  : ROHIT PATH
+  • Roll Number   : 2334745
+  • School/Inst   : N/A
+  • Result Status : PASS (Percentage/Total: N/A)
+  • Subjects (5):
+      - Hindi                          : Tot:90.0 | Grd:A1
+      - Mathematics                    : Tot:90.0 | Grd:A2
+      - Physics                        : Tot:70.0 | Grd:A1
+      - Chemistry                      : Tot:80.0 | Grd:A1
+      - English                        : Tot:90.0 | Grd:A1
+  • Arithmetic Validation : PASSED (No discrepancies)
+  • Timing        : Prep: 0.04s | VLM: 4.20s | Val: 0.00s | Total: 4.24s
+
+================================================================================
+                             BENCHMARK SUMMARY
+================================================================================
+Total Processed Marksheets : 8
+Successful Extractions     : 8/8 (100.0%)
+Average Time Per Document  : 6.28s
+Total Test Duration        : 50.24s
+
+Filename        | Board                          | Candidate            | Subjects | Status | Time
+-----------------------------------------------------------------------------------------------
+10_1.jpg        | CBSE                           | Devang Sharma        | 15       | PASS   | 9.86s
+10_2.jpg        | Uttar Pradesh                  | KUNWAR KAPIL SINGH   | 7        | PASS   | 6.19s
+10_3.jpg        | Central Board of Secondary E   | VANSH JAISWAL        | 7        | PASS   | 7.04s
+10_4.jpg        | Uttar Pradesh                  | Rohit Pathak         | 7        | PASS   | 6.0s
+12_1.jpg        | CBSE                           | Devang Sharma        | 8        | PASS   | 5.45s
+12_2.jpg        | Uttarakhand Board              | Son/Daughter of Mr   | 5        | PASS   | 4.86s
+12_3.jpg        | Central Board of Secondary E   | Vansh Jaiswal        | 9        | PASS   | 6.61s
+12_4.jpg        | Uttar Pradesh                  | ROHIT PATH           | 5        | PASS   | 4.24s
+================================================================================
