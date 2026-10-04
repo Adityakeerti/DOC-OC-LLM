@@ -43,7 +43,7 @@ MARKSHEET_SCHEMA = {
                 "school_name": {"type": ["string", "null"]},
                 "dob": {"type": ["string", "null"]}
             },
-            "required": ["name", "roll_no"]
+            "required": ["name", "roll_no", "father_name", "mother_name", "school_name", "dob"]
         },
         "subjects": {
             "type": "array",
@@ -57,7 +57,7 @@ MARKSHEET_SCHEMA = {
                     "max_marks": {"type": ["number", "null"]},
                     "grade": {"type": ["string", "null"]}
                 },
-                "required": ["name", "total"]
+                "required": ["name", "theory", "practical", "total", "max_marks", "grade"]
             }
         },
         "result": {
@@ -77,21 +77,26 @@ MARKSHEET_SCHEMA = {
 
 # ── Prompt ────────────────────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = """You are a high-precision marksheet data extractor. You receive an image of an Indian
-education board marksheet and return ONLY valid JSON matching the schema.
+SYSTEM_PROMPT = """You are a high-precision Indian marksheet extractor. Return ONLY valid JSON matching the schema.
 
-CRITICAL RESOLUTION RULES:
-1. CANDIDATE NAME RESOLUTION:
-   - On CBSE and State Board certificates, the student's name appears directly after "This is to certify that" or "Name of Candidate" or "Candidate's Name".
-   - "Mother's Name" and "Father's Name" appear below. NEVER assign the mother's or father's name as the candidate name!
-2. MARKS NOTATION:
-   - Never output numbers with leading zeros (write 77, NOT 077).
-   - If practical / internal assessment is present, separate theory and practical.
-3. SUBJECT MARKS ("total" vs "max_marks"):
-   - "total" MUST BE MARKS OBTAINED by the candidate (e.g. theory 62 + practical 20 = total 82). NEVER assign maximum marks (like 100) as the total obtained!
-   - "max_marks" is the total possible marks (typically 100).
-   - Extract every evaluated subject row. Keep subject names in clean English.
-4. DO NOT invent data. If a field is not present or unreadable, use null."""
+CRITICAL RULES:
+1. CANDIDATE & PARENT NAMES:
+   - Candidate Name: appears after "This is to certify that" or "Name of Candidate" or "Candidate's Name".
+   - Mother's Name: appears after "Mother's Name" or "माता का नाम".
+   - Father's Name: appears after "Father's Name" or "Father's / Guardian's Name" or "पिता/संरक्षक का नाम". Extract the full name (e.g. BALWANT SINGH RANA).
+   - Date of Birth (DOB): appears after "Date of Birth" or "जन्म तिथि" (e.g. 19-10-2005).
+   - School / Institution: appears after "School" or "विद्यालय" or "Institution" (e.g. ARMY PUBLIC SCHOOL BIRPUR DEHRADUN UK).
+
+2. SUBJECTS TABLE & MARKS (CBSE & State Boards):
+   - "SUB. CODE" is a subject code (e.g. 184, 085, 041, 086, 087, 402). DO NOT use subject codes as marks!
+   - "THEORY" (लिखित): extract numeric theory marks (e.g. 74, 75, 71, 61, 47).
+   - "PRACTICAL" / "IA/PR" (आं. मू. / प्रा. PR.): extract internal assessment / practical marks (e.g. 20, 50).
+   - "TOTAL" (योग): marks obtained by the student = Theory + Practical (e.g. 74+20=94, 75+20=95, 71+20=91, 61+20=81, 75+20=95, 47+50=97). Verified by the TOTAL IN WORDS column.
+   - "MAX_MARKS": maximum possible marks (typically 100).
+   - "GRADE": positional grade (e.g. A1, A2, B1).
+   - Never output numbers with leading zeros (write 94, NOT 094).
+
+3. DO NOT invent data. If a field is not present on the document, use null."""
 
 USER_PROMPT = "Extract all data from this marksheet image into strict JSON according to the schema and layout rules."
 

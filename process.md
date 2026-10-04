@@ -189,6 +189,36 @@
   - `GET http://localhost:8000/` automatically serves the full interactive dashboard.
   - Works seamlessly with both local file browser (`file:///.../UI.html`) and direct backend serving (`http://localhost:8000/`).
 
+---
+
+## 📌 Entry 012 — Resolving Null Parent Fields & Subject Code Confusion on 10_6.pdf
+* **Timestamp**: 2026-10-04 12:32:00 IST
+* **Action Taken**:
+  - Investigated user test case `MainDataset/10_6.pdf` (CBSE Class 10 certificate for candidate BHUMI):
+    - **Defect 1**: `father_name: null`, `school_name: null`, and `dob: null` were emitted.
+    - **Defect 2**: Subject marks for English and Hindi showed `total: 194` and `total: 185`, and `theory: null, practical: null`.
+  - **Root Cause Analysis**:
+    1. In `MARKSHEET_SCHEMA`, only `name` and `roll_no` were marked in `required` for `student_info`. The GBNF grammar allowed the model to omit `father_name`, `school_name`, and `dob`.
+    2. Indian marksheets use composite labels (e.g. `Father's / Guardian's Name` / `पिता/संरक्षक का नाम`) and bilingual table headers (`लिखित / THEORY`, `आं. मू. / IA / प्रा. PR.`, `योग / TOTAL`).
+    3. In CBSE tables, the first numeric column is `SUB. CODE` (e.g., `184` for English, `085` for Hindi). Without explicit column instruction, the model's spatial attention conflated the subject code with the total marks (`184` + `094` -> `194`).
+  - **The Fix**:
+    1. Updated `MARKSHEET_SCHEMA` to require `["name", "roll_no", "father_name", "mother_name", "school_name", "dob"]` in `student_info`, and `["name", "theory", "practical", "total", "max_marks", "grade"]` in `subjects`.
+    2. Updated `SYSTEM_PROMPT` with explicit layout grounding for composite father/guardian names, dates of birth, and clear distinction between `SUB. CODE` (subject code, to be ignored) vs. `THEORY`, `IA/PR` (practical), and `TOTAL` marks.
+* **Empirical Result**:
+  - Re-tested `MainDataset/10_6.pdf` via `/process` API in **6.77s**:
+    - Candidate Name: `BHUMI`
+    - Father's Name: `BALWANT SINGH RANA` (no longer null!)
+    - Mother's Name: `KARBI RANA`
+    - Date of Birth: `19-10-2005` (no longer null!)
+    - School: `ARMY PUBLIC SCHOOL BIRPUR DEHRADUN UK` (no longer null!)
+    - English: Theory `74`, Practical `20`, Total `94` (no longer 194!)
+    - Hindi: Theory `75`, Practical `20`, Total `95` (no longer 185!)
+    - IT: Theory `47`, Practical `50`, Total `97`
+    - Total Obtained: `541.0`
+    - Warnings: `[]` (0 discrepancies).
+  - Regression verified across `10_1.jpg` and `12_3.jpg` (both 100% accurate).
+
+
 
 
 
