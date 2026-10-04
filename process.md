@@ -174,6 +174,22 @@
      - Preserve model weights intact on Gemma-4-E2B (original verified backup remains in `/home/aditya/AI/models/backups/`).
      - Deliver the 6.28s / 100% accuracy engine as the production standard.
 
+---
+
+## 📌 Entry 011 — Split-Screen Web UI Implementation & FastAPI Integration
+* **Timestamp**: 2026-10-04 11:10:00 IST
+* **Action Taken**:
+  - Implemented [`UI.html`](file:///home/aditya/Desktop/STUDY/DOC%20OC%20v6/UI.html) featuring a responsive two-panel split-screen layout:
+    - **Left Panel**: Document upload dropzone supporting PDF, JPG, and PNG files with live rendered viewer (using `<iframe>` for vector PDFs and `<img>` for scan images) and real-time elapsed timer spinner.
+    - **Right Panel**: Extracted results dashboard displaying top KPI metrics (Status, Total Marks, Percentage, Latency), Candidate & Board information, formatted Subjects table (Theory, Practical, Total, Max Marks, Grade), self-healing warning alerts, and an expandable raw JSON box with a 1-click "Copy JSON" button.
+  - Mounted `UI.html` directly into `api/app.py` at `GET /` using `FileResponse`.
+* **Why It Was Done**:
+  - The user requested a visual testing interface to easily upload PDF/image marksheets on the left and immediately inspect extracted structured fields and tables on the right.
+* **Empirical Result**:
+  - `GET http://localhost:8000/` automatically serves the full interactive dashboard.
+  - Works seamlessly with both local file browser (`file:///.../UI.html`) and direct backend serving (`http://localhost:8000/`).
+
+
 
 
 

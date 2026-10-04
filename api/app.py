@@ -13,7 +13,7 @@ import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from pipeline import prepare, extract, validate
@@ -83,6 +83,15 @@ async def process_marksheet(file: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=str(e))
     finally:
         os.unlink(tmp.name)
+
+
+@app.get("/")
+async def serve_ui():
+    """Serve the split-screen test UI."""
+    ui_path = Path(__file__).resolve().parent.parent / "UI.html"
+    if ui_path.exists():
+        return FileResponse(ui_path)
+    return JSONResponse({"message": "DOC-OC v6 API running"})
 
 
 @app.get("/health")
