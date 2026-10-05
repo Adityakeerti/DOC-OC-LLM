@@ -61,8 +61,9 @@ DOC OC v6/
 ├── app.py                         ← Root entry point (runs uvicorn api.app:app)
 ├── start_server.sh                ← Root symlink/launcher for easy access
 ├── requirements.txt               ← Minimal dependencies (no heavy Torch in core app!)
-├── plan.md                        ← Architectural master plan
-└── prompt.md                      ← THIS FILE (Context & instructions for next agent)
+├── docs/
+│   ├── plan.md                    ← Architectural master plan
+│   └── prompt.md                  ← THIS FILE (Context & instructions for next agent)
 ```
 
 ---

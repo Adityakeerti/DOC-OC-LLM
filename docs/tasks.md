@@ -59,6 +59,6 @@
 
 ## 📊 Phase 3: Final Synthesis, Portfolio Matrix & GitHub Sync
 - [x] **Task 3.1**: Build Master Comparison Matrix (Base Gemma vs. Phase 1 Gemma vs. Qwen2.5-VL-3B vs. UI-TARS-7B).
-- [x] **Task 3.2**: Update `README.md` and `process.md` with deep ML engineering rationales and benchmark tables.
+- [x] **Task 3.2**: Update `README.md` and `docs/process.md` with deep ML engineering rationales and benchmark tables.
 - [x] **Task 3.3**: Final Git commit and push to `https://github.com/Adityakeerti/DOC-OC-LLM`.
 

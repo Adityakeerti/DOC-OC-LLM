@@ -350,7 +350,7 @@ Rules:
 
 ```
 DOC OC v6/
-├── plan.md                       ← This document
+├── docs/plan.md                  ← This document
 ├── MainDataset/                  ← Raw marksheet images & PDFs
 │   ├── 10_*.pdf / 10_*.jpg       ← 10th class samples (13)
 │   ├── 12_*.pdf / 12_*.jpg       ← 12th class samples (13)

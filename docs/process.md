@@ -218,6 +218,19 @@
     - Warnings: `[]` (0 discrepancies).
   - Regression verified across `10_1.jpg` and `12_3.jpg` (both 100% accurate).
 
+---
+
+### Step 13: Documentation & Repository Structure Refactoring
+* **Timestamp**: 2026-10-06 01:00:00 IST
+* **Action Taken**:
+  - Refactored repository structure to eliminate root directory document sprawl:
+    - Consolidated scattered operational, architectural, and planning documentation (`process.md`, `plan.md`, `tasks.md`, `prompt.md`, `day2-night-auto.md`) into a clean `docs/` directory.
+    - Created `docs/README.md` as the unified Documentation Index & Reading Guide, categorizing documents for interviewers, systems architects, and developers.
+    - Updated repository structure, internal markdown links, and cross-references in root `README.md`, `docs/plan.md`, `docs/prompt.md`, `docs/tasks.md`, and `docs/day2-night-auto.md`.
+* **Rationale**:
+  - A clean, well-factored repository layout is standard industry best practice for production ML systems. Separating source code (`api/`, `pipeline/`, `benchmarks/`, `training/`) from deep architectural documentation (`docs/`) prevents clutter while ensuring all technical trade-offs remain accessible.
+
+
 
 
 

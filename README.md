@@ -72,7 +72,7 @@ DOC-OC-v6/
 │
 ├── api/                           ← Backend API package
 │   ├── __init__.py
-│   └── app.py                     ← FastAPI server (/process, /health)
+│   └── app.py                     ← FastAPI server (/process, /health, UI mount)
 │
 ├── pipeline/                      ← Core VLM extraction logic
 │   ├── __init__.py                ← Re-exports: prepare, extract, validate
@@ -100,12 +100,30 @@ DOC-OC-v6/
 │   ├── analyze_layers.py          ← ShortGPT layer redundancy & cosine similarity
 │   └── data/                      ← train.jsonl (25), val.jsonl (6), test.jsonl (6)
 │
+├── docs/                          ← Technical documentation & interview logs
+│   ├── README.md                  ← Master documentation index & reading guide
+│   ├── process.md                 ← Chronological engineering decision log (12+ steps)
+│   ├── plan.md                    ← Architectural blueprint & roadmap
+│   ├── tasks.md                   ← Master engineering checklist
+│   ├── prompt.md                  ← VLM prompt engineering & schema constraints
+│   └── day2-night-auto.md         ← Overnight autonomous execution playbook
+│
+├── UI.html                        ← Split-screen interactive testing UI
 ├── start_server.sh                ← Launch script (100% GPU offload, Gemma/Qwen/UI-TARS)
-├── tasks.md                       ← Master engineering checklist
-├── process.md                     ← Chronological engineering decision log
-├── plan.md                        ← Architectural master plan
+├── app.py                         ← Root server entry point (python app.py)
 └── requirements.txt               ← Lightweight dependencies (no heavy Torch in core app)
 ```
+
+---
+
+## 📖 Engineering Documentation
+
+Comprehensive deep-dives, architectural trade-offs, and benchmarks are indexed in [`docs/`](docs/README.md):
+- **[`docs/process.md`](docs/process.md)**: Detailed chronological log of every technical challenge and solution for system design interview prep.
+- **[`docs/plan.md`](docs/plan.md)**: Master plan detailing hardware sizing, VRAM budgets, and optimization milestones.
+- **[`docs/tasks.md`](docs/tasks.md)**: Granular task status checklist.
+- **[`docs/prompt.md`](docs/prompt.md)**: Prompt evolution, layout grounding, and schema designs.
+- **[`docs/day2-night-auto.md`](docs/day2-night-auto.md)**: Overnight autonomous workflow and benchmark orchestration.
 
 ---
 

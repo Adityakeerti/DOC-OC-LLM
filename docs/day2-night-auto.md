@@ -122,8 +122,8 @@ Before running unattended overnight, we conducted full pre-flight checks:
   - Document findings in `results/result_pruning_experiment.txt`.
 
 ### Step 6: Master Portfolio Synthesis & GitHub Sync
-- Aggregate all benchmark results into a Master Comparison Matrix in `README.md` and `plan.md`.
-- Mark all completed tasks in `tasks.md`.
+- Aggregate all benchmark results into a Master Comparison Matrix in `README.md` and `docs/plan.md`.
+- Mark all completed tasks in `docs/tasks.md`.
 - Final Git commit: `feat(day2): full optimization suite, constrained decoding, benchmarks, and tuning`.
 - Push everything to `https://github.com/Adityakeerti/DOC-OC-LLM`.
 
