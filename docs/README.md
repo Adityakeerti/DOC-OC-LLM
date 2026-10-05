@@ -13,6 +13,7 @@ Welcome to the internal engineering documentation for **DOC-OC v6**, a productio
 | **[`tasks.md`](./tasks.md)** | **Sprint & Milestone Checklist** | Granular task-by-task status tracking across dataset collection, pipeline engineering, benchmark runs, and documentation syncs. |
 | **[`prompt.md`](./prompt.md)** | **Prompt Engineering & Layout Grounding** | VLM system prompt design, layout disambiguation rules (`SUB. CODE` vs marks, candidate name vs parent name), and zero-shot vs few-shot prompt templates. |
 | **[`day2-night-auto.md`](./day2-night-auto.md)** | **Autonomous Execution & Night Ops Guide** | Playbook for unattended batch evaluation, dataset compilation, layer redundancy analysis, and background process management. |
+| **[`post.md`](./post.md)** | **LinkedIn & Public Announcement Drafts** | Ready-to-publish technical write-ups detailing the evolution from legacy DOC-OC pipelines to the local VLM engine. |
 
 ---
 
