@@ -19,6 +19,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pipeline import prepare, extract, validate
 
 
+from fastapi.staticfiles import StaticFiles
+
 # ── App Setup ─────────────────────────────────────────────────────────────────
 
 app = FastAPI(
@@ -32,6 +34,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Mount dataset folder for sample previews
+dataset_dir = Path(__file__).resolve().parent.parent / "dataset"
+if dataset_dir.exists():
+    app.mount("/dataset", StaticFiles(directory=str(dataset_dir)), name="dataset")
 
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
