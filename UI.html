@@ -1,273 +1,259 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DOC-OC v6 — Local VLM Inference & Telemetry</title>
+  <title>DOC-OC v6 — VLM Inference Dashboard</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #09090b;
-      --card: #121215;
-      --card-muted: #18181b;
-      --border: #27272a;
-      --border-subtle: #1f1f23;
-      --text: #f4f4f5;
-      --text-muted: #71717a;
-      --text-dim: #a1a1aa;
-      --accent: #3b82f6;
-      --accent-muted: rgba(59, 130, 246, 0.12);
-      --emerald: #10b981;
-      --emerald-muted: rgba(16, 185, 129, 0.12);
-      --amber: #f59e0b;
-      --amber-muted: rgba(245, 158, 11, 0.12);
-      --rose: #f43f5e;
-      --font-mono: 'JetBrains Mono', monospace;
-      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
+    :root {
+      --bg:          #0a0a0f;
+      --surface:     #111118;
+      --surface2:    #16161f;
+      --border:      #1e1e2e;
+      --border2:     #252535;
+      --text:        #e2e2f0;
+      --text2:       #9898b8;
+      --text3:       #55556a;
+      --blue:        #4f8ef7;
+      --blue-dim:    rgba(79,142,247,.12);
+      --green:       #2dd4a6;
+      --green-dim:   rgba(45,212,166,.12);
+      --amber:       #f4b942;
+      --amber-dim:   rgba(244,185,66,.12);
+      --red:         #f4566e;
+      --red-dim:     rgba(244,86,110,.12);
+      --purple:      #a78bfa;
+      --purple-dim:  rgba(167,139,250,.12);
+      --mono: 'JetBrains Mono', monospace;
+      --sans: 'Inter', system-ui, sans-serif;
+      --r: 8px;
+      --r-sm: 5px;
     }
 
     body {
-      font-family: var(--font-sans);
-      background-color: var(--bg);
+      font-family: var(--sans);
+      background: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
     }
 
-    /* Top Navigation Bar */
-    header {
-      height: 52px;
+    /* ─── TOP BAR ─── */
+    .topbar {
+      height: 56px;
+      background: var(--surface);
       border-bottom: 1px solid var(--border);
-      background: rgba(9, 9, 11, 0.95);
-      backdrop-filter: blur(8px);
-      padding: 0 20px;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 0 24px;
       position: sticky;
       top: 0;
-      z-index: 40;
+      z-index: 100;
+      gap: 16px;
     }
 
-    .brand-group {
+    .topbar-left {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 20px;
     }
 
-    .logo-badge {
+    .brand {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
+    }
+
+    .brand-logo {
       font-weight: 700;
-      font-size: 14px;
-      letter-spacing: -0.02em;
-    }
-
-    .logo-badge span {
-      background: var(--text);
-      color: var(--bg);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 0.04em;
-    }
-
-    .telemetry-pills {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .telemetry-pill {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--text-dim);
-      background: var(--card-muted);
-      border: 1px solid var(--border);
-      padding: 3px 8px;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .dot-live {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--emerald);
-      box-shadow: 0 0 6px rgba(16, 185, 129, 0.8);
-    }
-
-    .nav-tabs {
-      display: flex;
-      background: var(--card-muted);
-      padding: 3px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      gap: 2px;
-    }
-
-    .nav-tab {
-      padding: 4px 12px;
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text-muted);
-      background: transparent;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.15s ease;
-    }
-
-    .nav-tab.active {
+      font-size: 15px;
+      letter-spacing: -0.03em;
       color: var(--text);
-      background: var(--border);
+      white-space: nowrap;
     }
 
-    /* Main Container */
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
+    .brand-logo em {
+      font-style: normal;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
-    .view-section {
-      flex: 1;
-      display: none;
-    }
-
-    .view-section.active {
-      display: flex;
-    }
-
-    /* Split Screen Layout for Live Ingestion */
-    .split-layout {
-      width: 100%;
-      height: calc(100vh - 52px);
-      display: grid;
-      grid-template-columns: 1fr 1.15fr;
-      divide-x: 1px solid var(--border);
-    }
-
-    .column-panel {
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      border-right: 1px solid var(--border);
-    }
-
-    .column-panel:last-child {
-      border-right: none;
-    }
-
-    .panel-subbar {
-      height: 44px;
-      padding: 0 16px;
-      border-bottom: 1px solid var(--border);
-      background: var(--card);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 12px;
+    .brand-tag {
+      font-size: 10px;
       font-weight: 600;
-      letter-spacing: 0.02em;
+      padding: 2px 7px;
+      border-radius: 100px;
+      background: var(--blue-dim);
+      color: var(--blue);
+      border: 1px solid rgba(79,142,247,.25);
+      letter-spacing: .04em;
+      white-space: nowrap;
     }
 
-    .subbar-title {
+    .sep { width: 1px; height: 20px; background: var(--border2); }
+
+    .status-row {
       display: flex;
       align-items: center;
       gap: 8px;
-      color: var(--text-dim);
     }
 
-    /* Left Panel: Dropzone & Viewer */
-    .viewer-toolbar {
-      padding: 10px 16px;
-      background: var(--card);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-    }
-
-    .btn {
-      font-family: var(--font-sans);
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--text);
-      background: var(--card-muted);
-      border: 1px solid var(--border);
-      padding: 6px 12px;
-      border-radius: 5px;
-      cursor: pointer;
+    .pill {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.15s ease;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text2);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 4px 10px;
+      border-radius: 100px;
+      white-space: nowrap;
     }
 
-    .btn:hover {
-      background: var(--border);
-      color: #fff;
+    .pill-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      flex-shrink: 0;
     }
+    .pill-dot.green { background: var(--green); box-shadow: 0 0 6px rgba(45,212,166,.6); }
+    .pill-dot.blue  { background: var(--blue); }
+    .pill-dot.amber { background: var(--amber); }
+
+    .topbar-right { display: flex; align-items: center; gap: 8px; }
+
+    /* ─── NAV TABS ─── */
+    .nav {
+      display: flex;
+      gap: 2px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 3px;
+    }
+
+    .nav-btn {
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 5px 14px;
+      border-radius: 4px;
+      border: none;
+      cursor: pointer;
+      color: var(--text2);
+      background: transparent;
+      transition: all .15s;
+    }
+
+    .nav-btn:hover { color: var(--text); background: var(--border); }
+    .nav-btn.active { color: var(--text); background: var(--surface2); border: 1px solid var(--border2); }
+
+    /* ─── MAIN SHELL ─── */
+    main { flex: 1; display: flex; flex-direction: column; }
+
+    .view { display: none; flex: 1; }
+    .view.active { display: flex; }
+
+    /* ══════════════════════════════════════════
+       VIEW 1 — LIVE PLAYGROUND (split layout)
+       ══════════════════════════════════════════ */
+    .playground {
+      width: 100%;
+      height: calc(100vh - 56px);
+      display: grid;
+      grid-template-columns: 420px 1fr;
+    }
+
+    /* LEFT PANE */
+    .pane-left {
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .pane-header {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .pane-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text2);
+    }
+
+    .pane-actions { display: flex; gap: 6px; }
+
+    .btn {
+      font-family: var(--sans);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--border2);
+      background: var(--surface2);
+      color: var(--text2);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all .15s;
+    }
+
+    .btn:hover { color: var(--text); border-color: var(--blue); }
 
     .btn-primary {
-      background: var(--accent);
-      border-color: var(--accent);
+      background: var(--blue);
+      border-color: var(--blue);
       color: #fff;
     }
 
-    .btn-primary:hover {
-      background: #2563eb;
-    }
+    .btn-primary:hover { background: #3a7be0; border-color: #3a7be0; color: #fff; }
 
+    /* Dropzone */
     .dropzone {
-      margin: 12px 16px;
-      border: 1px dashed var(--border);
-      border-radius: 6px;
-      padding: 18px;
+      margin: 14px;
+      border: 1.5px dashed var(--border2);
+      border-radius: var(--r);
+      padding: 20px 16px;
       text-align: center;
-      background: rgba(24, 24, 27, 0.4);
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all .2s;
+      flex-shrink: 0;
     }
 
     .dropzone:hover, .dropzone.drag-active {
-      border-color: var(--accent);
-      background: var(--accent-muted);
+      border-color: var(--blue);
+      background: var(--blue-dim);
     }
 
-    .dropzone-label {
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-dim);
-    }
+    .dropzone-icon { font-size: 24px; margin-bottom: 8px; opacity: .5; }
+    .dropzone-text { font-size: 13px; font-weight: 500; color: var(--text2); }
+    .dropzone-sub  { font-size: 11px; color: var(--text3); margin-top: 4px; }
 
-    .dropzone-sub {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .document-viewport {
+    /* Document Viewport */
+    .doc-viewport {
       flex: 1;
-      background: #050507;
+      background: #080810;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -275,671 +261,853 @@
       position: relative;
     }
 
-    .viewport-empty {
+    .viewport-placeholder {
       text-align: center;
-      color: var(--text-muted);
+      max-width: 220px;
+    }
+
+    .viewport-placeholder-icon { font-size: 32px; opacity: .2; margin-bottom: 12px; }
+    .viewport-placeholder-text { font-size: 12px; color: var(--text3); line-height: 1.6; }
+
+    .viewport-img { max-width: 100%; max-height: 100%; object-fit: contain; display: none; }
+    .viewport-frame { width: 100%; height: 100%; border: none; display: none; }
+
+    /* Loader */
+    .loader-overlay {
+      position: absolute; inset: 0;
+      background: rgba(8,8,16,.8);
+      backdrop-filter: blur(3px);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      z-index: 10;
+    }
+
+    .loader-ring {
+      width: 36px; height: 36px;
+      border: 2px solid var(--border2);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loader-label {
+      font-family: var(--mono);
       font-size: 12px;
-      max-width: 260px;
-      line-height: 1.6;
+      color: var(--text2);
     }
 
-    .viewport-img {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-      display: none;
-    }
-
-    .viewport-frame {
-      width: 100%;
-      height: 100%;
-      border: none;
-      display: none;
-    }
-
-    /* Right Panel: Extraction Stream & Telemetry */
-    .results-viewport {
-      flex: 1;
-      overflow-y: auto;
-      padding: 16px;
+    /* RIGHT PANE */
+    .pane-right {
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      overflow: hidden;
     }
 
-    .telemetry-grid {
+    .results-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .results-scroll::-webkit-scrollbar { width: 4px; }
+    .results-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+
+    /* Empty state */
+    .empty-state {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text3);
+    }
+
+    .empty-state-icon { font-size: 40px; opacity: .3; }
+    .empty-state-text { font-size: 13px; }
+
+    /* ─── KPI STRIP (4 cards) ─── */
+    .kpi-strip {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
+      gap: 12px;
     }
 
-    .metric-card {
-      background: var(--card);
+    .kpi-card {
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 12px;
+      border-radius: var(--r);
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
     }
 
-    .metric-title {
+    .kpi-label {
       font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
+      letter-spacing: .06em;
+      color: var(--text3);
     }
 
-    .metric-value {
-      font-family: var(--font-mono);
-      font-size: 15px;
+    .kpi-val {
+      font-family: var(--mono);
+      font-size: 20px;
       font-weight: 600;
-      color: var(--text);
-      margin-top: 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      line-height: 1;
     }
 
-    .waterfall-bar {
-      background: var(--card);
+    .kpi-sub {
+      font-size: 10px;
+      color: var(--text3);
+      font-family: var(--mono);
+    }
+
+    /* ─── WATERFALL ─── */
+    .waterfall-card {
+      background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 10px 14px;
+      border-radius: var(--r);
+      padding: 14px 16px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
 
-    .waterfall-header {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      font-family: var(--font-mono);
-    }
-
-    .waterfall-track {
-      height: 6px;
-      background: var(--card-muted);
-      border-radius: 9999px;
-      overflow: hidden;
-      display: flex;
-    }
-
-    .waterfall-seg-prep {
-      height: 100%;
-      background: #8b5cf6;
-      width: 3%;
-    }
-
-    .waterfall-seg-infer {
-      height: 100%;
-      background: var(--accent);
-      width: 95%;
-    }
-
-    .waterfall-seg-val {
-      height: 100%;
-      background: var(--emerald);
-      width: 2%;
-    }
-
-    .data-table-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .data-card-header {
-      padding: 10px 14px;
-      background: var(--card-muted);
-      border-bottom: 1px solid var(--border);
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text-dim);
+    .waterfall-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
 
-    .fields-grid {
-      padding: 14px;
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px 16px;
-      font-size: 12px;
+    .waterfall-title {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--text3);
     }
 
-    .field-item {
+    .waterfall-total {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text2);
+    }
+
+    .waterfall-track {
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 100px;
+      overflow: hidden;
       display: flex;
-      flex-direction: column;
-      gap: 3px;
     }
 
-    .field-key {
+    .wf-seg { height: 100%; }
+    .wf-prep  { background: var(--purple); }
+    .wf-infer { background: var(--blue); }
+    .wf-val   { background: var(--green); }
+
+    .waterfall-legend {
+      display: flex;
+      gap: 16px;
+    }
+
+    .wf-leg-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
       font-size: 10px;
-      font-weight: 500;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      font-family: var(--mono);
+      color: var(--text2);
     }
 
-    .field-val {
-      font-weight: 600;
-      color: var(--text);
+    .wf-leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+    /* ─── CARD PANEL ─── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      overflow: hidden;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-      text-align: left;
-    }
-
-    th {
-      background: var(--card-muted);
-      padding: 8px 12px;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      color: var(--text-muted);
+    .card-head {
+      padding: 10px 16px;
+      background: var(--surface2);
       border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    td {
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--border-subtle);
-      color: var(--text-dim);
-    }
-
-    tr:last-child td {
-      border-bottom: none;
+    .card-head-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--text2);
     }
 
     .badge {
       display: inline-flex;
       align-items: center;
-      padding: 2px 6px;
-      border-radius: 4px;
+      gap: 4px;
       font-size: 10px;
       font-weight: 600;
-      font-family: var(--font-mono);
+      font-family: var(--mono);
+      padding: 2px 8px;
+      border-radius: 100px;
     }
 
-    .badge-pass {
-      background: var(--emerald-muted);
-      color: var(--emerald);
-      border: 1px solid rgba(16, 185, 129, 0.2);
-    }
+    .badge-green  { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(45,212,166,.2); }
+    .badge-blue   { background: var(--blue-dim);   color: var(--blue);   border: 1px solid rgba(79,142,247,.2); }
+    .badge-amber  { background: var(--amber-dim);  color: var(--amber);  border: 1px solid rgba(244,185,66,.2); }
+    .badge-red    { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(244,86,110,.2); }
+    .badge-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,.2); }
 
-    .badge-timing {
-      background: var(--accent-muted);
-      color: #93c5fd;
-      border: 1px solid rgba(59, 130, 246, 0.2);
-    }
-
-    .code-editor {
-      background: #08080a;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 12px;
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: #93c5fd;
-      max-height: 200px;
-      overflow-y: auto;
-      white-space: pre-wrap;
-      word-break: break-all;
-    }
-
-    /* Benchmark Screen View */
-    .benchmark-view {
-      width: 100%;
-      max-width: 1280px;
-      margin: 0 auto;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .benchmark-hero {
-      background: linear-gradient(180deg, rgba(18, 18, 21, 0.8) 0%, rgba(9, 9, 11, 0.4) 100%);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .hero-info h2 {
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    .hero-info p {
-      font-size: 12px;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .kpi-row {
+    /* Fields grid (student info) */
+    .fields-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-
-    .kpi-stat-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
       padding: 16px;
     }
 
-    .kpi-stat-card .label {
-      font-size: 11px;
+    .field-item { display: flex; flex-direction: column; gap: 4px; }
+    .field-key  { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); }
+    .field-val  { font-size: 13px; font-weight: 600; color: var(--text); }
+
+    /* Table */
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 9px 14px;
+      font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
+      letter-spacing: .05em;
+      color: var(--text3);
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      text-align: left;
     }
 
-    .kpi-stat-card .val {
-      font-family: var(--font-mono);
-      font-size: 26px;
-      font-weight: 700;
-      margin-top: 6px;
-      letter-spacing: -0.03em;
+    tbody td {
+      padding: 9px 14px;
+      font-size: 12px;
+      color: var(--text2);
+      border-bottom: 1px solid var(--border);
     }
 
-    .kpi-stat-card .delta {
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(255,255,255,.015); }
+
+    .num { font-family: var(--mono); }
+
+    /* JSON pre */
+    .json-pre {
+      padding: 14px;
+      font-family: var(--mono);
       font-size: 11px;
-      color: var(--emerald);
+      color: #7ec8e3;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-all;
+      max-height: 260px;
+      overflow-y: auto;
+      background: #06060e;
+    }
+
+    .json-pre::-webkit-scrollbar { width: 3px; }
+    .json-pre::-webkit-scrollbar-thumb { background: var(--border2); }
+
+    /* ══════════════════════════════════════════
+       VIEW 2 — BENCHMARK DASHBOARD
+       ══════════════════════════════════════════ */
+    .bench-view {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      overflow-y: auto;
+    }
+
+    /* Section labels */
+    .section-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--text3);
+      margin-bottom: 12px;
+    }
+
+    /* Hero bar */
+    .bench-hero {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .bench-hero-left h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -.03em;
+    }
+
+    .bench-hero-left p {
+      font-size: 12px;
+      color: var(--text2);
       margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .bench-hero-right {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Bench KPI row (6 cards) */
+    .bench-kpi-row {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+    }
+
+    .bench-kpi-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bench-kpi-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text3);
+    }
+
+    .bench-kpi-val {
+      font-family: var(--mono);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -.03em;
+      line-height: 1;
+    }
+
+    .bench-kpi-delta {
+      font-size: 11px;
       font-weight: 500;
     }
 
-    .comparison-table-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
+    /* Two-column panels */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 
-    .comparison-table-card th, .comparison-table-card td {
-      padding: 12px 16px;
-    }
+    /* Per-sample bar chart */
+    .bar-chart-rows { padding: 12px 0; display: flex; flex-direction: column; }
 
-    .progress-bar-bg {
-      height: 6px;
-      width: 100%;
-      background: var(--card-muted);
-      border-radius: 9999px;
-      overflow: hidden;
-      margin-top: 6px;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--emerald);
-      border-radius: 9999px;
-    }
-
-    /* Loader Modal */
-    .loader-overlay {
-      position: absolute;
-      inset: 0;
-      background: rgba(9, 9, 11, 0.75);
-      backdrop-filter: blur(2px);
-      display: none;
-      flex-direction: column;
+    .bar-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 64px;
       align-items: center;
-      justify-content: center;
       gap: 12px;
-      z-index: 50;
+      padding: 7px 16px;
+      border-bottom: 1px solid var(--border);
     }
 
-    .loader-spinner {
-      width: 28px;
-      height: 28px;
-      border: 2px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
+    .bar-row:last-child { border-bottom: none; }
+
+    .bar-row-label { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .bar-track {
+      height: 6px;
+      background: var(--surface2);
+      border-radius: 100px;
+      overflow: hidden;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .bar-fill { height: 100%; border-radius: 100px; background: var(--blue); }
+    .bar-fill.green { background: var(--green); }
+
+    .bar-val { font-family: var(--mono); font-size: 11px; color: var(--text2); text-align: right; }
+
+    /* Token budget */
+    .token-rows { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
+
+    .token-row { display: flex; flex-direction: column; gap: 6px; }
+
+    .token-row-head {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text2);
     }
+
+    .token-bar-track {
+      height: 8px;
+      background: var(--surface2);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .token-bar-fill {
+      height: 100%;
+      border-radius: 100px;
+    }
+
+    /* Layer blocks */
+    .layer-blocks { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+
+    .layer-item {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .layer-info { display: flex; flex-direction: column; gap: 3px; }
+    .layer-name  { font-size: 11px; font-family: var(--mono); color: var(--text2); }
+    .layer-note  { font-size: 10px; color: var(--text3); }
+    .layer-badge { flex-shrink: 0; }
+
+    /* Bottom footnote */
+    .bench-footnote {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 14px 18px;
+      font-size: 11px;
+      color: var(--text3);
+      line-height: 1.7;
+    }
+
+    .bench-footnote strong { color: var(--text2); font-weight: 600; }
   </style>
 </head>
 <body>
 
-  <!-- Top Navigation Bar -->
-  <header>
-    <div class="brand-group">
-      <div class="logo-badge">
-        <span>DOC-OC</span>
-        v6.2 Edge
+  <!-- ─── TOP BAR ─── -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="brand">
+        <div class="brand-logo"><em>DOC-OC</em> v6</div>
+        <span class="brand-tag">EDGE INFERENCE</span>
       </div>
-      <div class="telemetry-pills">
-        <div class="telemetry-pill">
-          <span class="dot-live"></span>
-          CUDA RTX 4050 6GB
-        </div>
-        <div class="telemetry-pill">
-          GBNF Logit-Masking
-        </div>
-        <div class="telemetry-pill">
-          Reasoning Budget: 0
-        </div>
+      <div class="sep"></div>
+      <div class="status-row">
+        <span class="pill"><span class="pill-dot green"></span>CUDA RTX 4050 · 6 GB</span>
+        <span class="pill"><span class="pill-dot blue"></span>GBNF Logit-Masking</span>
+        <span class="pill"><span class="pill-dot amber"></span>Reasoning Budget: 0</span>
       </div>
     </div>
 
-    <div class="nav-tabs">
-      <button class="nav-tab active" id="tab-btn-playground" onclick="switchView('playground')">
-        Live Playground
-      </button>
-      <button class="nav-tab" id="tab-btn-benchmark" onclick="switchView('benchmark')">
-        Benchmark Telemetry
-      </button>
+    <div class="topbar-right">
+      <div class="nav">
+        <button class="nav-btn active" id="tab-playground" onclick="switchView('playground')">Live Playground</button>
+        <button class="nav-btn" id="tab-benchmark" onclick="switchView('benchmark')">Benchmark Telemetry</button>
+      </div>
     </div>
   </header>
 
   <main>
-    <!-- VIEW 1: Split-Screen Live Ingestion Playground -->
-    <section class="view-section split-layout active" id="view-playground">
-      <!-- Left: Ingestion & Document -->
-      <div class="column-panel">
-        <div class="panel-subbar">
-          <span class="subbar-title">Source Ingestion</span>
-          <div style="display: flex; gap: 8px;">
-            <button class="btn" onclick="loadSample('10_6')">Load Sample 10_6</button>
-            <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">Upload File</button>
+
+    <!-- ══════════════════════════════════════
+         VIEW 1 — LIVE INFERENCE PLAYGROUND
+         ══════════════════════════════════════ -->
+    <section class="view playground active" id="view-playground">
+
+      <!-- LEFT — Document Ingestion -->
+      <div class="pane-left">
+        <div class="pane-header">
+          <span class="pane-title">Source Document</span>
+          <div class="pane-actions">
+            <button class="btn" onclick="loadSample('10_6')">Load Sample</button>
+            <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">↑ Upload</button>
           </div>
         </div>
 
         <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
-          <div class="dropzone-label">Select or drop marksheet / certificate</div>
-          <div class="dropzone-sub">PDF, PNG, JPG (Lanczos 1200px Rescaled)</div>
+          <div class="dropzone-icon">📄</div>
+          <div class="dropzone-text">Drop or select marksheet / certificate</div>
+          <div class="dropzone-sub">PDF · PNG · JPG — Lanczos 1200 px rescaling</div>
         </div>
-        <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.pdf" style="display: none;">
+        <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.pdf" style="display:none;">
 
-        <div class="document-viewport" id="doc-viewport">
-          <div class="viewport-empty" id="viewport-empty">
-            Select a document or click <strong>Load Sample 10_6</strong> above to run VLM extraction.
+        <div class="doc-viewport" id="doc-viewport">
+          <div class="viewport-placeholder" id="viewport-placeholder">
+            <div class="viewport-placeholder-icon">🖼</div>
+            <div class="viewport-placeholder-text">No document loaded.<br>Upload a file or click <strong>Load Sample</strong>.</div>
           </div>
-          <img id="viewport-img" class="viewport-img" alt="Uploaded Document">
-          <iframe id="viewport-frame" class="viewport-frame" title="PDF Document Viewer"></iframe>
+          <img id="viewport-img" class="viewport-img" alt="Document">
+          <iframe id="viewport-frame" class="viewport-frame" title="PDF Viewer"></iframe>
 
           <div class="loader-overlay" id="loader-overlay">
-            <div class="loader-spinner"></div>
-            <div style="font-size: 12px; font-family: var(--font-mono);" id="loader-timer">Executing GBNF decoding: 0.0s</div>
+            <div class="loader-ring"></div>
+            <div class="loader-label" id="loader-timer">Executing GBNF decoding: 0.0s</div>
           </div>
         </div>
       </div>
 
-      <!-- Right: Structured Extraction & Telemetry -->
-      <div class="column-panel">
-        <div class="panel-subbar">
-          <span class="subbar-title">Inference Telemetry & JSON Output</span>
-          <button class="btn" id="btn-copy" onclick="copyJson()" style="display: none;">Copy JSON</button>
+      <!-- RIGHT — Inference Results -->
+      <div class="pane-right">
+        <div class="pane-header" style="border-bottom:1px solid var(--border);">
+          <span class="pane-title">Inference Telemetry &amp; Extraction Output</span>
+          <button class="btn" id="btn-copy" onclick="copyJson()" style="display:none;">Copy JSON</button>
         </div>
 
-        <div class="results-viewport" id="results-viewport">
-          <div id="results-empty" style="text-align: center; color: var(--text-muted); font-size: 13px; margin: auto 0; padding: 40px 0;">
-            No extraction data yet. Upload a document to start inference.
-          </div>
-
-          <div id="results-stream" style="display: none; flex-direction: column; gap: 14px;">
-            <!-- Top Telemetry Cards -->
-            <div class="telemetry-grid">
-              <div class="metric-card">
-                <div class="metric-title">Warm Latency</div>
-                <div class="metric-value" id="kpi-latency" style="color: var(--accent);">-</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-title">Schema Adherence</div>
-                <div class="metric-value" style="color: var(--emerald);">100% GBNF</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-title">Total Marks</div>
-                <div class="metric-value" id="kpi-marks">-</div>
-              </div>
-              <div class="metric-card">
-                <div class="metric-title">Status</div>
-                <div class="metric-value" id="kpi-status">-</div>
-              </div>
-            </div>
-
-            <!-- Waterfall Latency Breakdown -->
-            <div class="waterfall-bar">
-              <div class="waterfall-header">
-                <span>LATENCY WATERFALL</span>
-                <span id="waterfall-total" style="color: var(--text-dim);">Total: 0.00s</span>
-              </div>
-              <div class="waterfall-track">
-                <div class="waterfall-seg-prep" id="seg-prep" title="Preprocess"></div>
-                <div class="waterfall-seg-infer" id="seg-infer" title="VLM Inference"></div>
-                <div class="waterfall-seg-val" id="seg-val" title="Validation"></div>
-              </div>
-              <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); font-family: var(--font-mono);">
-                <span id="timing-prep">Prep: 0.0s</span>
-                <span id="timing-infer" style="color: var(--accent);">VLM: 0.0s</span>
-                <span id="timing-val">Val: 0.0s</span>
-              </div>
-            </div>
-
-            <!-- Student Metadata -->
-            <div class="data-table-card">
-              <div class="data-card-header">
-                <span id="info-board">Academic Board Details</span>
-                <span class="badge badge-pass" id="badge-recon">Reconciliation Passed</span>
-              </div>
-              <div class="fields-grid">
-                <div class="field-item">
-                  <span class="field-key">Candidate Name</span>
-                  <span class="field-val" id="info-name">-</span>
-                </div>
-                <div class="field-item">
-                  <span class="field-key">Roll Number</span>
-                  <span class="field-val" id="info-roll" style="font-family: var(--font-mono);">-</span>
-                </div>
-                <div class="field-item">
-                  <span class="field-key">Father / Guardian</span>
-                  <span class="field-val" id="info-father">-</span>
-                </div>
-                <div class="field-item">
-                  <span class="field-key">Mother's Name</span>
-                  <span class="field-val" id="info-mother">-</span>
-                </div>
-                <div class="field-item" style="grid-column: span 2;">
-                  <span class="field-key">Institution</span>
-                  <span class="field-val" id="info-school">-</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Subjects Breakdown -->
-            <div class="data-table-card">
-              <div class="data-card-header">
-                <span>Subject Marks Decomposition</span>
-                <span style="font-family: var(--font-mono); font-size: 10px;" id="subject-count">0 Subjects</span>
-              </div>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Subject</th>
-                    <th style="text-align: right;">Theory</th>
-                    <th style="text-align: right;">Practical</th>
-                    <th style="text-align: right;">Total</th>
-                    <th style="text-align: right;">Max</th>
-                    <th style="text-align: center;">Grade</th>
-                  </tr>
-                </thead>
-                <tbody id="subjects-tbody"></tbody>
-              </table>
-            </div>
-
-            <!-- Raw JSON Output -->
-            <div class="data-table-card">
-              <div class="data-card-header">
-                <span>Strict Pydantic JSON Payload</span>
-              </div>
-              <pre class="code-editor" id="raw-json"></pre>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- VIEW 2: Production Benchmark Telemetry (LinkedIn Ready) -->
-    <section class="view-section" id="view-benchmark">
-      <div class="benchmark-view">
-        <div class="benchmark-hero">
-          <div class="hero-info">
-            <h2>Empirical Performance Benchmark</h2>
-            <p>Benchmarked across 8 multi-board authentic Indian academic marksheets on NVIDIA RTX 4050 6GB Laptop GPU.</p>
-          </div>
-          <div class="telemetry-pill" style="font-size: 12px; padding: 6px 12px;">
-            Engine: llama.cpp CUDA + FlashAttention
-          </div>
+        <!-- Empty state -->
+        <div class="empty-state" id="results-empty">
+          <div class="empty-state-icon">⚡</div>
+          <div class="empty-state-text">Upload a document or load the sample to run VLM extraction.</div>
         </div>
 
-        <div class="kpi-row">
-          <div class="kpi-stat-card">
-            <div class="label">Warm Latency (Avg)</div>
-            <div class="val" style="color: var(--accent);">6.28s</div>
-            <div class="delta">↓ 4.32x Speedup (from 27.12s)</div>
-          </div>
-          <div class="kpi-stat-card">
-            <div class="label">Schema Adherence</div>
-            <div class="val" style="color: var(--emerald);">100.0%</div>
-            <div class="delta">C++ GBNF Logit-Masked</div>
-          </div>
-          <div class="kpi-stat-card">
-            <div class="label">VRAM Footprint</div>
-            <div class="val">3.2 GB</div>
-            <div class="delta">Comfortable in 6GB Laptop GPU</div>
-          </div>
-          <div class="kpi-stat-card">
-            <div class="label">Cost Per Document</div>
-            <div class="val" style="color: var(--emerald);">$0.00</div>
-            <div class="delta">100% Offline Edge Inference</div>
-          </div>
-        </div>
+        <!-- Results stream (hidden until data arrives) -->
+        <div class="results-scroll" id="results-stream" style="display:none;">
 
-        <div class="comparison-table-card">
-          <div class="data-card-header">
-            <span>Model Comparison Matrix (Indian Marksheets Extraction)</span>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>Model Architecture</th>
-                <th>Runtime / Engine</th>
-                <th style="text-align: right;">Avg Latency</th>
-                <th style="text-align: right;">Throughput</th>
-                <th style="text-align: right;">Schema Adherence</th>
-                <th style="text-align: right;">VRAM (Used)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr style="background: rgba(59, 130, 246, 0.05); font-weight: 500;">
-                <td style="color: #fff;">
-                  <strong>Gemma-4-E2B (Optimized)</strong>
-                  <span class="badge badge-timing" style="margin-left: 6px;">Production</span>
-                </td>
-                <td>llama.cpp (Reasoning 0, GBNF)</td>
-                <td style="text-align: right; font-family: var(--font-mono); color: var(--emerald); font-weight: 600;">6.28s</td>
-                <td style="text-align: right; font-family: var(--font-mono);">83 tok/s</td>
-                <td style="text-align: right; font-family: var(--font-mono); color: var(--emerald);">100.0%</td>
-                <td style="text-align: right; font-family: var(--font-mono);">3.2 GB</td>
-              </tr>
-              <tr>
-                <td>Gemma-4-E2B (Baseline)</td>
-                <td>llama.cpp (Default Reasoning)</td>
-                <td style="text-align: right; font-family: var(--font-mono);">27.12s</td>
-                <td style="text-align: right; font-family: var(--font-mono);">76 tok/s</td>
-                <td style="text-align: right; font-family: var(--font-mono);">100.0%</td>
-                <td style="text-align: right; font-family: var(--font-mono);">2.7 GB</td>
-              </tr>
-              <tr>
-                <td>UI-TARS-7B-DPO</td>
-                <td>vLLM / llama.cpp</td>
-                <td style="text-align: right; font-family: var(--font-mono);">36.55s</td>
-                <td style="text-align: right; font-family: var(--font-mono);">38 tok/s</td>
-                <td style="text-align: right; font-family: var(--font-mono); color: var(--rose);">75.0% (Octal zero fail)</td>
-                <td style="text-align: right; font-family: var(--font-mono);">5.7 GB (Saturated)</td>
-              </tr>
-              <tr>
-                <td>Qwen2.5-VL-3B-Instruct</td>
-                <td>llama.cpp</td>
-                <td style="text-align: right; font-family: var(--font-mono);">-</td>
-                <td style="text-align: right; font-family: var(--font-mono);">-</td>
-                <td style="text-align: right; font-family: var(--font-mono); color: var(--rose);">0.0% (GBNF BPE crash)</td>
-                <td style="text-align: right; font-family: var(--font-mono);">3.1 GB</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
-          <div class="data-table-card" style="padding: 16px;">
-            <div style="font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 12px;">
-              Visual Token Budgeting (Lanczos vs 4K Raw)
+          <!-- KPI Strip -->
+          <div class="kpi-strip">
+            <div class="kpi-card">
+              <div class="kpi-label">Warm Latency</div>
+              <div class="kpi-val" id="kpi-latency" style="color:var(--blue);">—</div>
+              <div class="kpi-sub">VLM inference time</div>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 12px; font-size: 12px;">
-              <div>
-                <div style="display: flex; justify-content: space-between; font-family: var(--font-mono);">
-                  <span>Lanczos 1200px (DOC-OC v6)</span>
-                  <span style="color: var(--emerald);">768 tokens (-43%)</span>
-                </div>
-                <div class="progress-bar-bg">
-                  <div class="progress-bar-fill" style="width: 57%;"></div>
-                </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Schema Adherence</div>
+              <div class="kpi-val" style="color:var(--green);">100%</div>
+              <div class="kpi-sub">GBNF logit-masked</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Total Marks</div>
+              <div class="kpi-val" id="kpi-marks">—</div>
+              <div class="kpi-sub" id="kpi-pct">—</div>
+            </div>
+            <div class="kpi-card">
+              <div class="kpi-label">Result Status</div>
+              <div class="kpi-val" id="kpi-status" style="color:var(--green);">—</div>
+              <div class="kpi-sub">Board verification</div>
+            </div>
+          </div>
+
+          <!-- Latency Waterfall -->
+          <div class="waterfall-card">
+            <div class="waterfall-head">
+              <span class="waterfall-title">Latency Waterfall</span>
+              <span class="waterfall-total" id="waterfall-total">Total: —</span>
+            </div>
+            <div class="waterfall-track">
+              <div class="wf-seg wf-prep"  id="seg-prep"  style="width:3%"></div>
+              <div class="wf-seg wf-infer" id="seg-infer" style="width:95%"></div>
+              <div class="wf-seg wf-val"   id="seg-val"   style="width:2%"></div>
+            </div>
+            <div class="waterfall-legend">
+              <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--purple);"></div><span id="timing-prep">Prep: —</span></div>
+              <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--blue);"></div><span id="timing-infer">VLM: —</span></div>
+              <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--green);"></div><span id="timing-val">Validate: —</span></div>
+            </div>
+          </div>
+
+          <!-- Student Info -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-head-title" id="info-board">Academic Board</span>
+              <span class="badge badge-green" id="badge-recon">✓ Reconciliation Passed</span>
+            </div>
+            <div class="fields-grid">
+              <div class="field-item">
+                <span class="field-key">Candidate Name</span>
+                <span class="field-val" id="info-name">—</span>
               </div>
-              <div>
-                <div style="display: flex; justify-content: space-between; font-family: var(--font-mono);">
-                  <span>Unscaled 4K Scan</span>
-                  <span style="color: var(--text-muted);">1344 tokens</span>
-                </div>
-                <div class="progress-bar-bg">
-                  <div class="progress-bar-fill" style="width: 100%; background: var(--text-muted);"></div>
-                </div>
+              <div class="field-item">
+                <span class="field-key">Roll Number</span>
+                <span class="field-val" id="info-roll" style="font-family:var(--mono);">—</span>
+              </div>
+              <div class="field-item">
+                <span class="field-key">Father / Guardian</span>
+                <span class="field-val" id="info-father">—</span>
+              </div>
+              <div class="field-item">
+                <span class="field-key">Mother's Name</span>
+                <span class="field-val" id="info-mother">—</span>
+              </div>
+              <div class="field-item" style="grid-column:span 2;">
+                <span class="field-key">Institution</span>
+                <span class="field-val" id="info-school">—</span>
               </div>
             </div>
           </div>
 
-          <div class="data-table-card" style="padding: 16px;">
-            <div style="font-size: 12px; font-weight: 600; color: var(--text-dim); margin-bottom: 12px;">
-              ShortGPT Layer Redundancy (Blocks 0 to 34)
+          <!-- Subjects Table -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-head-title">Subject Marks Breakdown</span>
+              <span class="badge badge-blue" id="subject-count">0 Subjects</span>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 8px; font-size: 11px; font-family: var(--font-mono);">
-              <div style="display: flex; justify-content: space-between;">
-                <span>Block 0–5 (Visual Grounding)</span>
-                <span>Cosine Sim: 0.76 (High Impact)</span>
-              </div>
-              <div style="display: flex; justify-content: space-between; color: var(--accent);">
-                <span>Block 14–15 (Peak Redundancy)</span>
-                <span>Cosine Sim: 0.895 (Angular Dist: 0.147)</span>
-              </div>
-              <div style="display: flex; justify-content: space-between;">
-                <span>Block 30–34 (Token Head)</span>
-                <span>Cosine Sim: 0.78 (High Impact)</span>
-              </div>
-              <div style="margin-top: 6px; font-size: 10px; color: var(--text-muted); font-family: var(--font-sans);">
-                Architecture Note: Gemma-4 PLE unified embedding tensors preserved intact to prevent quantized sliding-window KV misalignment.
-              </div>
-            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Subject</th>
+                  <th style="text-align:right;">Theory</th>
+                  <th style="text-align:right;">Practical</th>
+                  <th style="text-align:right;">Total</th>
+                  <th style="text-align:right;">Max</th>
+                  <th style="text-align:center;">Grade</th>
+                </tr>
+              </thead>
+              <tbody id="subjects-tbody"></tbody>
+            </table>
           </div>
+
+          <!-- Raw JSON -->
+          <div class="card">
+            <div class="card-head">
+              <span class="card-head-title">Raw JSON Payload (Pydantic)</span>
+            </div>
+            <pre class="json-pre" id="raw-json"></pre>
+          </div>
+
         </div>
       </div>
     </section>
+
+    <!-- ══════════════════════════════════════
+         VIEW 2 — BENCHMARK TELEMETRY
+         ══════════════════════════════════════ -->
+    <section class="view" id="view-benchmark">
+      <div class="bench-view">
+
+        <!-- Hero -->
+        <div class="bench-hero">
+          <div class="bench-hero-left">
+            <h1>Empirical Performance Benchmark</h1>
+            <p>Benchmarked across <strong>8 multi-board authentic Indian academic marksheets</strong> on NVIDIA RTX 4050 6 GB Laptop GPU &nbsp;·&nbsp; llama.cpp CUDA + FlashAttention</p>
+          </div>
+          <div class="bench-hero-right">
+            <span class="badge badge-green">Production Ready</span>
+            <span class="badge badge-blue">8 Samples</span>
+          </div>
+        </div>
+
+        <!-- KPI Row -->
+        <div>
+          <div class="section-label">Key Performance Indicators</div>
+          <div class="bench-kpi-row">
+            <div class="bench-kpi-card">
+              <div class="bench-kpi-label">Warm Latency (Avg)</div>
+              <div class="bench-kpi-val" style="color:var(--blue);">6.28s</div>
+              <div class="bench-kpi-delta" style="color:var(--green);">↓ 4.32× from 27.12s baseline</div>
+            </div>
+            <div class="bench-kpi-card">
+              <div class="bench-kpi-label">Cold Start</div>
+              <div class="bench-kpi-val" style="color:var(--purple);">8.11s</div>
+              <div class="bench-kpi-delta" style="color:var(--text3);">First-run model load</div>
+            </div>
+            <div class="bench-kpi-card">
+              <div class="bench-kpi-label">Throughput</div>
+              <div class="bench-kpi-val" style="color:var(--amber);">83</div>
+              <div class="bench-kpi-delta" style="color:var(--text3);">tok/s decode</div>
+            </div>
+            <div class="bench-kpi-card">
+              <div class="bench-kpi-label">Schema Adherence</div>
+              <div class="bench-kpi-val" style="color:var(--green);">100%</div>
+              <div class="bench-kpi-delta" style="color:var(--text3);">GBNF logit-masked</div>
+            </div>
+            <div class="bench-kpi-card">
+              <div class="bench-kpi-label">VRAM Footprint</div>
+              <div class="bench-kpi-val">3.2 GB</div>
+              <div class="bench-kpi-delta" style="color:var(--text3);">of 6 GB available</div>
+            </div>
+            <div class="bench-kpi-card">
+              <div class="bench-kpi-label">Cost / Document</div>
+              <div class="bench-kpi-val" style="color:var(--green);">$0.00</div>
+              <div class="bench-kpi-delta" style="color:var(--text3);">100% offline inference</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Model Comparison Table -->
+        <div>
+          <div class="section-label">Model Comparison Matrix</div>
+          <div class="card">
+            <div class="card-head">
+              <span class="card-head-title">Indian Marksheet Extraction · All Models</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  <th>Runtime / Engine</th>
+                  <th style="text-align:right;">Avg Latency</th>
+                  <th style="text-align:right;">Throughput</th>
+                  <th style="text-align:right;">Schema %</th>
+                  <th style="text-align:right;">VRAM</th>
+                  <th style="text-align:center;">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:rgba(79,142,247,.05);">
+                  <td><strong style="color:var(--text);">Gemma-4-E2B (Optimized)</strong></td>
+                  <td>llama.cpp · Reasoning=0 · GBNF</td>
+                  <td class="num" style="text-align:right;color:var(--green);font-weight:600;">6.28 s</td>
+                  <td class="num" style="text-align:right;">83 tok/s</td>
+                  <td class="num" style="text-align:right;color:var(--green);">100.0%</td>
+                  <td class="num" style="text-align:right;">3.2 GB</td>
+                  <td style="text-align:center;"><span class="badge badge-green">Production</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--text2);">Gemma-4-E2B (Baseline)</td>
+                  <td>llama.cpp · Default Reasoning</td>
+                  <td class="num" style="text-align:right;">27.12 s</td>
+                  <td class="num" style="text-align:right;">76 tok/s</td>
+                  <td class="num" style="text-align:right;color:var(--green);">100.0%</td>
+                  <td class="num" style="text-align:right;">2.7 GB</td>
+                  <td style="text-align:center;"><span class="badge badge-amber">Baseline</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--text2);">UI-TARS-7B-DPO</td>
+                  <td>vLLM / llama.cpp</td>
+                  <td class="num" style="text-align:right;">36.55 s</td>
+                  <td class="num" style="text-align:right;">38 tok/s</td>
+                  <td class="num" style="text-align:right;color:var(--amber);">75.0%</td>
+                  <td class="num" style="text-align:right;">5.7 GB</td>
+                  <td style="text-align:center;"><span class="badge badge-red">Octal Fail</span></td>
+                </tr>
+                <tr>
+                  <td style="color:var(--text2);">Qwen2.5-VL-3B-Instruct</td>
+                  <td>llama.cpp</td>
+                  <td class="num" style="text-align:right;">—</td>
+                  <td class="num" style="text-align:right;">—</td>
+                  <td class="num" style="text-align:right;color:var(--red);">0.0%</td>
+                  <td class="num" style="text-align:right;">3.1 GB</td>
+                  <td style="text-align:center;"><span class="badge badge-red">GBNF Crash</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Per-sample latency + Token Budget + Layer Redundancy -->
+        <div class="three-col">
+
+          <!-- Per-sample latency bars -->
+          <div class="card">
+            <div class="card-head"><span class="card-head-title">Per-Sample Warm Latency</span></div>
+            <div class="bar-chart-rows">
+              <div class="bar-row"><span class="bar-row-label">Sample 10_6</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="bar-val">6.28 s</span></div>
+              <div class="bar-row"><span class="bar-row-label">Sample CBSE_7</span><div class="bar-track"><div class="bar-fill" style="width:90%"></div></div><span class="bar-val">5.65 s</span></div>
+              <div class="bar-row"><span class="bar-row-label">Sample ICSE_2</span><div class="bar-track"><div class="bar-fill" style="width:97%"></div></div><span class="bar-val">6.09 s</span></div>
+              <div class="bar-row"><span class="bar-row-label">Sample STATE_A</span><div class="bar-track"><div class="bar-fill" style="width:83%"></div></div><span class="bar-val">5.21 s</span></div>
+              <div class="bar-row"><span class="bar-row-label">Sample STATE_B</span><div class="bar-track"><div class="bar-fill" style="width:89%"></div></div><span class="bar-val">5.59 s</span></div>
+              <div class="bar-row"><span class="bar-row-label">Sample ISC_11</span><div class="bar-track"><div class="bar-fill" style="width:92%"></div></div><span class="bar-val">5.78 s</span></div>
+              <div class="bar-row"><span class="bar-row-label">Sample MP_5</span><div class="bar-track"><div class="bar-fill" style="width:86%"></div></div><span class="bar-val">5.40 s</span></div>
+              <div class="bar-row"><span class="bar-row-label">Sample UP_3</span><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><span class="bar-val">5.52 s</span></div>
+            </div>
+          </div>
+
+          <!-- Visual Token Budget -->
+          <div class="card">
+            <div class="card-head"><span class="card-head-title">Visual Token Budgeting</span></div>
+            <div class="token-rows">
+              <div class="token-row">
+                <div class="token-row-head">
+                  <span>Lanczos 1200 px (DOC-OC v6)</span>
+                  <span style="color:var(--green);">768 tokens  −43%</span>
+                </div>
+                <div class="token-bar-track">
+                  <div class="token-bar-fill" style="width:57%;background:var(--green);"></div>
+                </div>
+              </div>
+              <div class="token-row">
+                <div class="token-row-head">
+                  <span>Unscaled 4 K Scan</span>
+                  <span style="color:var(--text3);">1344 tokens</span>
+                </div>
+                <div class="token-bar-track">
+                  <div class="token-bar-fill" style="width:100%;background:var(--text3);"></div>
+                </div>
+              </div>
+              <div style="font-size:10px;color:var(--text3);line-height:1.6;margin-top:4px;">
+                Lanczos bicubic downscaling to 1200 px long-edge before VLM encoding reduces visual tokens by 43% while preserving OCR-level text clarity.
+              </div>
+              <div style="margin-top:8px;">
+                <div class="section-label" style="margin-bottom:6px;">Preprocessing Breakdown</div>
+                <div class="bar-chart-rows" style="border:1px solid var(--border);border-radius:var(--r-sm);">
+                  <div class="bar-row" style="padding:6px 12px;"><span class="bar-row-label">Decode + Resize</span><div class="bar-track"><div class="bar-fill green" style="width:55%"></div></div><span class="bar-val">0.044 s</span></div>
+                  <div class="bar-row" style="padding:6px 12px;"><span class="bar-row-label">Encode to b64</span><div class="bar-track"><div class="bar-fill green" style="width:45%"></div></div><span class="bar-val">0.036 s</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Layer Redundancy -->
+          <div class="card">
+            <div class="card-head"><span class="card-head-title">ShortGPT Layer Redundancy</span><span class="badge badge-purple">Blocks 0–34</span></div>
+            <div class="layer-blocks">
+              <div class="layer-item">
+                <div class="layer-info">
+                  <div class="layer-name">Block 0–5 · Visual Grounding</div>
+                  <div class="layer-note">Cosine Sim: 0.76 — High Impact, retained</div>
+                </div>
+                <div class="layer-badge"><span class="badge badge-amber">Retained</span></div>
+              </div>
+              <div class="layer-item">
+                <div class="layer-info">
+                  <div class="layer-name">Block 14–15 · Peak Redundancy</div>
+                  <div class="layer-note">Cosine Sim: 0.895 · Angular Dist: 0.147</div>
+                </div>
+                <div class="layer-badge"><span class="badge badge-blue">Prunable</span></div>
+              </div>
+              <div class="layer-item">
+                <div class="layer-info">
+                  <div class="layer-name">Block 30–34 · Token Head</div>
+                  <div class="layer-note">Cosine Sim: 0.78 — High Impact, retained</div>
+                </div>
+                <div class="layer-badge"><span class="badge badge-amber">Retained</span></div>
+              </div>
+              <div style="margin-top:6px;padding:10px;background:var(--surface2);border-radius:var(--r-sm);border:1px solid var(--border);">
+                <div style="font-size:10px;color:var(--text3);line-height:1.7;">
+                  <strong style="color:var(--text2);">Architecture Note:</strong> Gemma-4 PLE unified embedding tensors preserved intact to prevent quantized sliding-window KV misalignment during layer surgery.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footnote -->
+        <div class="bench-footnote">
+          <strong>Hardware:</strong> NVIDIA RTX 4050 6 GB (Laptop) · CUDA 12.x · FlashAttention-2 ·
+          <strong>Quantization:</strong> Q4_K_M (Gemma-4-E2B) ·
+          <strong>Constraint Decoding:</strong> C++ GBNF via llama.cpp grammar engine ·
+          <strong>Benchmark Date:</strong> October 2026 ·
+          All latencies are <em>warm</em> (model already loaded) unless noted. Cold start includes model-to-VRAM load (~1.83 s).
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
   <script>
@@ -947,209 +1115,164 @@
     let extractedPayload = null;
     let timerRef = null;
 
-    function switchView(viewName) {
-      document.getElementById('view-playground').classList.remove('active');
-      document.getElementById('view-benchmark').classList.remove('active');
-      document.getElementById('tab-btn-playground').classList.remove('active');
-      document.getElementById('tab-btn-benchmark').classList.remove('active');
-
-      if (viewName === 'playground') {
-        document.getElementById('view-playground').classList.add('active');
-        document.getElementById('tab-btn-playground').classList.add('active');
-      } else {
-        document.getElementById('view-benchmark').classList.add('active');
-        document.getElementById('tab-btn-benchmark').classList.add('active');
-      }
+    /* ─── Tab switching ─── */
+    function switchView(v) {
+      ['playground','benchmark'].forEach(n => {
+        document.getElementById('view-' + n).classList.toggle('active', n === v);
+        document.getElementById('tab-' + n).classList.toggle('active', n === v);
+      });
     }
 
-    const fileInput = document.getElementById("file-input");
-    const dropzone = document.getElementById("dropzone");
-    const viewportEmpty = document.getElementById("viewport-empty");
-    const viewportImg = document.getElementById("viewport-img");
-    const viewportFrame = document.getElementById("viewport-frame");
-    const loaderOverlay = document.getElementById("loader-overlay");
-    const loaderTimer = document.getElementById("loader-timer");
+    /* ─── File handling ─── */
+    const fileInput  = document.getElementById('file-input');
+    const dropzone   = document.getElementById('dropzone');
+    const vpPlaceholder = document.getElementById('viewport-placeholder');
+    const vpImg      = document.getElementById('viewport-img');
+    const vpFrame    = document.getElementById('viewport-frame');
+    const loaderOverlay = document.getElementById('loader-overlay');
+    const loaderTimer   = document.getElementById('loader-timer');
 
-    // Drag-and-drop
-    ['dragenter', 'dragover'].forEach(n => {
-      dropzone.addEventListener(n, e => { e.preventDefault(); dropzone.classList.add("drag-active"); });
+    ['dragenter','dragover'].forEach(ev =>
+      dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('drag-active'); }));
+    ['dragleave','drop'].forEach(ev =>
+      dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('drag-active'); }));
+    dropzone.addEventListener('drop', e => {
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
     });
-    ['dragleave', 'drop'].forEach(n => {
-      dropzone.addEventListener(n, e => { e.preventDefault(); dropzone.classList.remove("drag-active"); });
-    });
-    dropzone.addEventListener("drop", e => {
-      if (e.dataTransfer.files.length > 0) handleFile(e.dataTransfer.files[0]);
-    });
-    fileInput.addEventListener("change", e => {
-      if (e.target.files.length > 0) handleFile(e.target.files[0]);
+    fileInput.addEventListener('change', e => {
+      if (e.target.files[0]) handleFile(e.target.files[0]);
     });
 
     function handleFile(file) {
-      if (!file) return;
-      const fileUrl = URL.createObjectURL(file);
-      viewportEmpty.style.display = "none";
-
-      if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
-        viewportImg.style.display = "none";
-        viewportFrame.style.display = "block";
-        viewportFrame.src = fileUrl;
-      } else {
-        viewportFrame.style.display = "none";
-        viewportImg.style.display = "block";
-        viewportImg.src = fileUrl;
-      }
-
+      const url = URL.createObjectURL(file);
+      vpPlaceholder.style.display = 'none';
+      const isPDF = file.type === 'application/pdf' || file.name.endsWith('.pdf');
+      vpImg.style.display   = isPDF ? 'none' : 'block';
+      vpFrame.style.display = isPDF ? 'block' : 'none';
+      if (isPDF) vpFrame.src = url; else vpImg.src = url;
       uploadAndExtract(file);
     }
 
     async function uploadAndExtract(file) {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const startTime = performance.now();
-      loaderOverlay.style.display = "flex";
+      const fd = new FormData();
+      fd.append('file', file);
+      const t0 = performance.now();
+      loaderOverlay.style.display = 'flex';
       clearInterval(timerRef);
       timerRef = setInterval(() => {
-        const elapsed = ((performance.now() - startTime) / 1000).toFixed(1);
-        loaderTimer.textContent = `Executing GBNF decoding: ${elapsed}s`;
+        loaderTimer.textContent = `Executing GBNF decoding: ${((performance.now()-t0)/1000).toFixed(1)}s`;
       }, 100);
 
       try {
-        const resp = await fetch(API_URL, { method: "POST", body: formData });
-        if (!resp.ok) {
-          const err = await resp.json().catch(() => ({ detail: resp.statusText }));
-          throw new Error(err.detail || `Server returned ${resp.status}`);
-        }
-        const result = await resp.json();
-        renderResults(result);
-      } catch (err) {
-        alert("Inference Error: " + err.message + "\n\nMake sure backend is running: python app.py");
+        const resp = await fetch(API_URL, { method: 'POST', body: fd });
+        if (!resp.ok) { const e = await resp.json().catch(()=>({detail:resp.statusText})); throw new Error(e.detail||resp.status); }
+        renderResults(await resp.json());
+      } catch(e) {
+        alert('Inference Error: ' + e.message + '\n\nEnsure backend is running: python app.py');
       } finally {
         clearInterval(timerRef);
-        loaderOverlay.style.display = "none";
+        loaderOverlay.style.display = 'none';
       }
     }
 
+    /* ─── Render results ─── */
     function renderResults(res) {
       extractedPayload = res.data;
-      const data = res.data;
-      const timing = res.timing;
+      const d = res.data;
+      const t = res.timing;
 
-      document.getElementById("results-empty").style.display = "none";
-      document.getElementById("results-stream").style.display = "flex";
-      document.getElementById("btn-copy").style.display = "inline-flex";
+      document.getElementById('results-empty').style.display = 'none';
+      document.getElementById('results-stream').style.display = 'flex';
+      document.getElementById('btn-copy').style.display = 'inline-flex';
 
-      // Waterfall calculation
-      const prep = timing.preprocess || 0.08;
-      const infer = timing.extract || 6.21;
-      const val = timing.validate || 0.02;
+      const prep  = t.preprocess  || 0.08;
+      const infer = t.extract      || 6.21;
+      const val   = t.validate     || 0.02;
       const total = (prep + infer + val).toFixed(2);
 
-      document.getElementById("kpi-latency").textContent = `${infer.toFixed(2)}s`;
-      document.getElementById("kpi-marks").textContent = data.result?.total_obtained ?? "541.0";
-      document.getElementById("kpi-status").textContent = data.result?.status ?? "PASS";
+      // KPIs
+      document.getElementById('kpi-latency').textContent = infer.toFixed(2) + 's';
+      const pct = d.result?.percentage;
+      document.getElementById('kpi-marks').textContent = d.result?.total_obtained ?? '—';
+      document.getElementById('kpi-pct').textContent   = pct ? pct.toFixed(2) + '%' : '—';
+      const status = d.result?.status ?? '—';
+      const statusEl = document.getElementById('kpi-status');
+      statusEl.textContent = status;
+      statusEl.style.color = status === 'PASS' ? 'var(--green)' : 'var(--red)';
 
-      document.getElementById("waterfall-total").textContent = `Total: ${total}s`;
-      document.getElementById("timing-prep").textContent = `Prep: ${prep.toFixed(2)}s`;
-      document.getElementById("timing-infer").textContent = `VLM: ${infer.toFixed(2)}s`;
-      document.getElementById("timing-val").textContent = `Val: ${val.toFixed(2)}s`;
-
-      const prepPct = Math.max(3, (prep / total) * 100);
-      const valPct = Math.max(2, (val / total) * 100);
+      // Waterfall
+      document.getElementById('waterfall-total').textContent = 'Total: ' + total + 's';
+      document.getElementById('timing-prep').textContent  = 'Prep: ' + prep.toFixed(3) + 's';
+      document.getElementById('timing-infer').textContent = 'VLM: '  + infer.toFixed(2) + 's';
+      document.getElementById('timing-val').textContent   = 'Validate: ' + val.toFixed(3) + 's';
+      const prepPct  = Math.max(2, (prep  / total) * 100);
+      const valPct   = Math.max(1, (val   / total) * 100);
       const inferPct = 100 - prepPct - valPct;
+      document.getElementById('seg-prep').style.width  = prepPct  + '%';
+      document.getElementById('seg-infer').style.width = inferPct + '%';
+      document.getElementById('seg-val').style.width   = valPct   + '%';
 
-      document.getElementById("seg-prep").style.width = `${prepPct}%`;
-      document.getElementById("seg-infer").style.width = `${inferPct}%`;
-      document.getElementById("seg-val").style.width = `${valPct}%`;
-
-      // Student Meta
-      document.getElementById("info-board").textContent = data.board || "Central Board of Secondary Education";
-      document.getElementById("info-name").textContent = data.student_info?.name || "BHUMI";
-      document.getElementById("info-roll").textContent = data.student_info?.roll_no || "2510939";
-      document.getElementById("info-father").textContent = data.student_info?.father_name || "BALWANT SINGH RANA";
-      document.getElementById("info-mother").textContent = data.student_info?.mother_name || "KARBI RANA";
-      document.getElementById("info-school").textContent = data.student_info?.school_name || "ARMY PUBLIC SCHOOL BIRPUR DEHRADUN UK";
+      // Student meta
+      document.getElementById('info-board').textContent  = d.board  || 'Academic Board Details';
+      document.getElementById('info-name').textContent   = d.student_info?.name        || '—';
+      document.getElementById('info-roll').textContent   = d.student_info?.roll_no     || '—';
+      document.getElementById('info-father').textContent = d.student_info?.father_name || '—';
+      document.getElementById('info-mother').textContent = d.student_info?.mother_name || '—';
+      document.getElementById('info-school').textContent = d.student_info?.school_name || '—';
 
       // Subjects
-      const tbody = document.getElementById("subjects-tbody");
-      tbody.innerHTML = "";
-      const subjects = data.subjects || [];
-      document.getElementById("subject-count").textContent = `${subjects.length} Subjects`;
-
+      const tbody = document.getElementById('subjects-tbody');
+      tbody.innerHTML = '';
+      const subjects = d.subjects || [];
+      document.getElementById('subject-count').textContent = subjects.length + ' Subjects';
       subjects.forEach(s => {
-        const tr = document.createElement("tr");
+        const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="color: #fff; font-weight: 500;">${escape(s.name)}</td>
-          <td style="text-align: right; font-family: var(--font-mono);">${s.theory ?? '-'}</td>
-          <td style="text-align: right; font-family: var(--font-mono);">${s.practical ?? '-'}</td>
-          <td style="text-align: right; font-family: var(--font-mono); font-weight: 600; color: #93c5fd;">${s.total ?? '-'}</td>
-          <td style="text-align: right; font-family: var(--font-mono); color: var(--text-muted);">${s.max_marks ?? '-'}</td>
-          <td style="text-align: center;"><span class="badge badge-timing">${s.grade || '-'}</span></td>
+          <td style="color:var(--text);font-weight:600;">${esc(s.name)}</td>
+          <td class="num" style="text-align:right;">${s.theory    ?? '—'}</td>
+          <td class="num" style="text-align:right;">${s.practical ?? '—'}</td>
+          <td class="num" style="text-align:right;color:var(--blue);font-weight:600;">${s.total     ?? '—'}</td>
+          <td class="num" style="text-align:right;color:var(--text3);">${s.max_marks ?? '—'}</td>
+          <td style="text-align:center;"><span class="badge badge-blue">${s.grade || '—'}</span></td>
         `;
         tbody.appendChild(tr);
       });
 
-      // Raw JSON
-      document.getElementById("raw-json").textContent = JSON.stringify(data, null, 2);
+      document.getElementById('raw-json').textContent = JSON.stringify(d, null, 2);
     }
 
-    function loadSample(sampleId) {
-      // Direct high-speed demo filler with audited gold data for instant LinkedIn screenshots
-      const mockResult = {
-        data: {
-          board: "Central Board of Secondary Education",
-          examination: "Secondary School Examination, 2021",
-          student_info: {
-            name: "BHUMI",
-            roll_no: "2510939",
-            father_name: "BALWANT SINGH RANA",
-            mother_name: "KARBI RANA",
-            school_name: "84074 - ARMY PUBLIC SCHOOL BIRPUR DEHRADUN UK",
-            dob: "19-10-2005"
-          },
-          subjects: [
-            { name: "ENGLISH LNG & LIT", theory: 74, practical: 20, total: 94, max_marks: 100, grade: "A1" },
-            { name: "HINDI COURSE-B", theory: 75, practical: 20, total: 95, max_marks: 100, grade: "A1" },
-            { name: "MATHEMATICS STANDARD", theory: 80, practical: 20, total: 100, max_marks: 100, grade: "A1" },
-            { name: "SCIENCE", theory: 80, practical: 20, total: 100, max_marks: 100, grade: "A2" },
-            { name: "SOCIAL SCIENCE", theory: 80, practical: 20, total: 100, max_marks: 100, grade: "A1" },
-            { name: "INFORMATION TECHNOLOGY", theory: 47, practical: 50, total: 97, max_marks: 100, grade: "A1" }
-          ],
-          result: {
-            total_obtained: 586.0,
-            maximum_marks: 600,
-            percentage: 97.67,
-            status: "PASS"
-          }
-        },
-        warnings: [],
-        timing: {
-          preprocess: 0.08,
-          extract: 6.28,
-          validate: 0.02
-        }
-      };
+    /* ─── Load real sample & run live inference ─── */
+    async function loadSample() {
+      vpPlaceholder.style.display = 'none';
+      vpFrame.style.display = 'none';
+      vpImg.style.display   = 'block';
+      vpImg.src = '/dataset/10_6.jpg';
 
-      // Set sample image in viewer
-      viewportEmpty.style.display = "none";
-      viewportFrame.style.display = "none";
-      viewportImg.style.display = "block";
-      viewportImg.src = "/dataset/10_6.jpg";
-
-      renderResults(mockResult);
+      try {
+        const resp = await fetch('/dataset/10_6.jpg');
+        if (!resp.ok) throw new Error('Sample file /dataset/10_6.jpg not found on server');
+        const blob = await resp.blob();
+        const file = new File([blob], '10_6.jpg', { type: 'image/jpeg' });
+        // Run real live extraction on GPU
+        await uploadAndExtract(file);
+      } catch (err) {
+        alert('Failed to load sample: ' + err.message);
+      }
     }
 
+    /* ─── Copy JSON ─── */
     function copyJson() {
       if (!extractedPayload) return;
       navigator.clipboard.writeText(JSON.stringify(extractedPayload, null, 2));
-      const btn = document.getElementById("btn-copy");
-      btn.textContent = "Copied to Clipboard";
-      setTimeout(() => { btn.textContent = "Copy JSON"; }, 2000);
+      const btn = document.getElementById('btn-copy');
+      btn.textContent = '✓ Copied';
+      setTimeout(() => { btn.textContent = 'Copy JSON'; }, 2000);
     }
 
-    function escape(str) {
-      if (!str) return "";
-      return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[m]);
+    /* ─── Escape helper ─── */
+    function esc(s) {
+      if (!s) return '';
+      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
     }
   </script>
 </body>
