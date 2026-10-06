@@ -17,7 +17,7 @@ from PIL import Image, ImageOps
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-MAX_DIMENSION = 1200  # Optimal trade-off: 100% font legibility with ~43% fewer visual tokens
+MAX_DIMENSION = 1600  # High-fidelity trade-off: preserves small text and double digits with crisp patches
 
 
 # ── PDF Handling ──────────────────────────────────────────────────────────────
@@ -29,8 +29,8 @@ def pdf_to_image(pdf_path: str) -> Image.Image:
     doc = fitz.open(pdf_path)
     page = doc.load_page(0)
 
-    # 2x matrix = double resolution for crisp text
-    pixmap = page.get_pixmap(matrix=fitz.Matrix(2, 2))
+    # 2.5x matrix (~180-200 DPI) for crisp character strokes on scanned marksheets
+    pixmap = page.get_pixmap(matrix=fitz.Matrix(2.5, 2.5))
     img_bytes = pixmap.tobytes("ppm")
     doc.close()
 

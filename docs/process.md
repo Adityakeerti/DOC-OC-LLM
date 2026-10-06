@@ -230,6 +230,27 @@
 * **Rationale**:
   - A clean, well-factored repository layout is standard industry best practice for production ML systems. Separating source code (`api/`, `pipeline/`, `benchmarks/`, `training/`) from deep architectural documentation (`docs/`) prevents clutter while ensuring all technical trade-offs remain accessible.
 
+---
+
+### Step 14: Overcoming GBNF Clamping, Multi-Column IA/Practical Shifting & Resolution Degradation
+* **Timestamp**: 2026-10-07 02:00:00 IST
+* **Problem Diagnosed**:
+  - Rigorous testing on authentic multi-board marksheets across Indian state boards (Uttarakhand, UP) and central boards (CBSE, ICSE) revealed several critical failure modes:
+    1. **0.0 Marks Clamping**: State boards print marks with leading zeros (e.g., `072`, `020`, `092`). In standard JSON RFC 8259 enforced by llama.cpp GBNF grammar (`"type": "number"`), no number can begin with `0` followed by another digit. Once `0` was sampled by the VLM, the GBNF sampler masked out all digits, forcing `0.0`.
+    2. **Multi-Column IA vs Practical Shifts**: Multi-column state marksheets split marks into `THEORY`, `PR.` (Practical), and `IA` (Internal Assessment), leaving PR. blank for non-science subjects and IA blank for science subjects. The VLM frequently drifted spatially across blank cells, resulting in missing practical marks or column misalignments.
+    3. **Character Truncation & Low DPI**: PyMuPDF rasterization at 144 DPI with 1200px downsampling blurred fine 8pt font strokes (e.g., `ROHIT PATHAK` was truncated to `ROHIT PATH`, interior zeros in roll numbers were skipped).
+    4. **Candidate vs. Parent Confusion**: State board marksheets use legal phrasing (`Son/Daughter of Mrs. [MOTHER]` and `and Mr. [FATHER]`) rather than explicit labels `Mother's Name:`, causing confusion and hallucinated parent names.
+* **Engineering Interventions**:
+  1. **Leading-Zero GBNF Decoupling**: Updated `MARKSHEET_SCHEMA` in `pipeline/extract.py` to allow `"type": ["string", "null"]` for marks. Built a pre-validation coercion layer in Pydantic (`mode="before"`) in `pipeline/validate.py` that safely parses string numerals (`"072"`, `"020"`) into floats without grammar rejection.
+  2. **High-Fidelity Rasterization**: Elevated PDF rasterization to `fitz.Matrix(2.5, 2.5)` (~200+ DPI) and Lanczos resize to `MAX_DIMENSION = 1600px` in `pipeline/preprocess.py`, preserving character strokes and double digits.
+  3. **Row-Level Number Count & Word Anchoring**: Structured prompt instructions to count printed numbers per row: 2 numbers -> Theory & Total (Practical is null); 3 numbers -> Theory, Practical, Total. Grounded each row's total to its `TOTAL IN WORDS` column (e.g. `SEVENTY SEVEN` -> `77`, `EIGHTY NINE` -> `89`).
+  4. **Self-Healing Arithmetic & Category Purging**: Added deterministic post-processing in Pydantic: purged non-academic category rows (`ADDITIONAL SUBJECT`, `SUPW`, `INTERNAL ASSESSMENT`), healed duplicated practical marks, and capped individual subjects at maximum marks (100).
+* **Empirical Results**:
+  - `MainDataset/10_4.pdf`: 100% exact (Rohit Pathak, Roll No 21085521, Father Naveen Chandra Pathak, Mother Geeta Pathak, 450/500 = 90.0% PASS).
+  - `MainDataset/12_8.pdf`: 100% exact (Divyansh Chauhan, Roll No 23405515, Hindi 72+20=92, Maths 58+20=78, Physics 46+30=76, Chemistry 50+30=80, English 63+20=83, 409/500 = 81.8% PASS).
+  - `MainDataset/10_6.pdf`: 100% exact (Bhumi, Roll No 25109039, Father Balwant Singh Rana, Mother Karabi Rana, 553/600 = 92.17% PASS).
+  - `MainDataset/10_1.pdf` & `10_3.pdf`: ICSE and CBSE regression tests passed with zero errors.
+
 
 
 

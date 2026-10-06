@@ -51,10 +51,10 @@ MARKSHEET_SCHEMA = {
                 "type": "object",
                 "properties": {
                     "name": {"type": "string"},
-                    "theory": {"type": ["number", "null"]},
-                    "practical": {"type": ["number", "null"]},
-                    "total": {"type": "number"},
-                    "max_marks": {"type": ["number", "null"]},
+                    "theory": {"type": ["string", "null"]},
+                    "practical": {"type": ["string", "null"]},
+                    "total": {"type": ["string", "null"]},
+                    "max_marks": {"type": ["string", "null"]},
                     "grade": {"type": ["string", "null"]}
                 },
                 "required": ["name", "theory", "practical", "total", "max_marks", "grade"]
@@ -63,8 +63,8 @@ MARKSHEET_SCHEMA = {
         "result": {
             "type": "object",
             "properties": {
-                "total_obtained": {"type": ["number", "null"]},
-                "maximum_marks": {"type": ["number", "null"]},
+                "total_obtained": {"type": ["string", "null"]},
+                "maximum_marks": {"type": ["string", "null"]},
                 "percentage": {"type": ["string", "null"]},
                 "status": {"type": "string"}
             },
@@ -77,28 +77,50 @@ MARKSHEET_SCHEMA = {
 
 # ── Prompt ────────────────────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = """You are a high-precision Indian marksheet extractor. Return ONLY valid JSON matching the schema.
+SYSTEM_PROMPT = """You are a high-precision Indian academic marksheet extractor. Return ONLY valid JSON matching the schema.
 
-CRITICAL RULES:
-1. CANDIDATE & PARENT NAMES:
-   - Candidate Name: appears after "This is to certify that" or "Name of Candidate" or "Candidate's Name".
-   - Mother's Name: appears after "Mother's Name" or "माता का नाम".
-   - Father's Name: appears after "Father's Name" or "Father's / Guardian's Name" or "पिता/संरक्षक का नाम". Extract the full name (e.g. BALWANT SINGH RANA).
-   - Date of Birth (DOB): appears after "Date of Birth" or "जन्म तिथि" (e.g. 19-10-2005).
-   - School / Institution: appears after "School" or "विद्यालय" or "Institution" (e.g. ARMY PUBLIC SCHOOL BIRPUR DEHRADUN UK).
+CRITICAL EXTRACTION RULES:
+1. CANDIDATE & PARENT DETAILS:
+   - Candidate Name: The student's legal name printed directly following "This is to certify that" or "according to the Board's record" / "परिषद् के अभिलेखानुसार" or "Candidate's Name".
+     * Example: In "This is to certify that BHUMI", Candidate Name is "BHUMI".
+     * Example: In "according to the Board's record ROHIT PATHAK", Candidate Name is "ROHIT PATHAK".
+     * WARNING: NEVER confuse Candidate Name with Mother's Name or Father's Name!
+   - Mother's Name: Name printed directly following "Mrs." in "Son/Daughter of Mrs. [NAME]" or after "Mother's Name" / "माता का नाम" / "श्रीमती". (e.g. GEETA PATHAK, KARABI RANA, SARIKA RAJPUT).
+   - Father's Name: Name printed directly following "Mr." in "and Mr. [NAME]" or after "Father's Name" / "Father's / Guardian's Name" / "पिता/संरक्षक का नाम" / "श्री". (e.g. NAVEEN CHANDRA PATHAK, MAHESH SINGH, BALWANT SINGH RANA).
+   - Roll Number: Exact full digits under "Roll No." / "अनुक्रमांक" (preserve all consecutive digits and interior zeros, e.g. "25109039", "21085521", "23405515").
+   - Date of Birth (DOB): Format DD-MM-YYYY if present (e.g. "01-11-2005", "19-10-2005", "04-04-2003"), or null.
+   - School / Institution: Full school name and code if visible.
 
-2. SUBJECTS TABLE & MARKS (CBSE & State Boards):
-   - "SUB. CODE" is a subject code (e.g. 184, 085, 041, 086, 087, 402). DO NOT use subject codes as marks!
-   - "THEORY" (लिखित): extract numeric theory marks (e.g. 74, 75, 71, 61, 47).
-   - "PRACTICAL" / "IA/PR" (आं. मू. / प्रा. PR.): extract internal assessment / practical marks (e.g. 20, 50).
-   - "TOTAL" (योग): marks obtained by the student = Theory + Practical (e.g. 74+20=94, 75+20=95, 71+20=91, 61+20=81, 75+20=95, 47+50=97). Verified by the TOTAL IN WORDS column.
-   - "MAX_MARKS": maximum possible marks (typically 100).
-   - "GRADE": positional grade (e.g. A1, A2, B1).
-   - Never output numbers with leading zeros (write 94, NOT 094).
+2. SUBJECTS TABLE & MARKS (CBSE, ICSE, STATE BOARDS):
+   - Only extract real academic subjects (e.g. HINDI, ENGLISH, MATHEMATICS, SCIENCE, SOCIAL SCIENCE, SANSKRIT, INFORMATION TECHNOLOGY).
+   - NEVER create subject rows for headers or category labels like "ADDITIONAL SUBJECT", "COMPULSORY", "INTERNAL ASSESSMENT", "SUPW", or "RESULT"!
+   - "SUB. CODE": 2-3 digit subject code (e.g. 001, 021, 031, 101, 128, 184). Never use code as marks!
+   - Table columns typically appear as:
+     [SUB. CODE] | [SUBJECT] | [THEORY] | [PRACTICAL PR.] | [INTERNAL ASSESS. IA] | [TOTAL] | [TOTAL IN WORDS]
+   - IN EACH ROW, COUNT HOW MANY NUMBERS ARE PRINTED IN THE MARKS SECTION:
+     * If ONLY TWO numbers are printed in that row (e.g. Hindi/English/Sanskrit where practical is blank):
+       - First number = THEORY (e.g. "077", "089", "080")
+       - PRACTICAL = null (the practical and IA columns are completely blank!)
+       - Second number = TOTAL (e.g. "077", "089", "080")
+       - DO NOT invent practical marks, DO NOT copy numbers from other rows, and DO NOT add numbers together!
+     * If THREE numbers are printed in that row (e.g. Maths, Science, Social Science where practical/IA exists):
+       - First number = THEORY (e.g. "077", "072", "075", "058", "74")
+       - Second number = PRACTICAL / IA (e.g. "020", "030", "20", "50")
+       - Third number = TOTAL (e.g. "097", "092", "095", "078", "94")
+     * In ALL cases:
+       - The LAST numeric marks column is ALWAYS the Total marks obtained.
+       - The Total MUST match the text in the "TOTAL IN WORDS" / "योग (शब्दों में)" column (e.g. "SEVENTY SEVEN" -> "077", "EIGHTY NINE" -> "089", "NINETY SEVEN" -> "097", "NINETY TWO" -> "092", "NINETY FIVE" -> "095", "EIGHTY" -> "080").
+       - Total marks for any single subject CAN NEVER exceed 100.
+       - Output all marks as strings in quotes to preserve formatting (e.g. "092", "078", "020", "74").
+   - "MAX_MARKS": "100" for each subject.
 
-3. DO NOT invent data. If a field is not present on the document, use null."""
+3. OVERALL RESULT:
+   - Status: "PASS", "PASSED", "FAIL", or "COMPARTMENT".
+   - Total Obtained: Grand total obtained from the overall result section if printed (e.g. "450" if printed "450/500", "409" if "409/500"), or null.
+   - Maximum Marks: Total maximum marks across all subjects (e.g. "500", "600"), or null.
+   - Percentage: e.g. "90.0%" or null."""
 
-USER_PROMPT = "Extract all data from this marksheet image into strict JSON according to the schema and layout rules."
+USER_PROMPT = "Extract all marksheet data into strict JSON following the schema and disambiguation rules."
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

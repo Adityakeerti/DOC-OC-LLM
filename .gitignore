@@ -27,4 +27,5 @@ ENV/
 # Cache & Temporary files
 .cache/
 *.log
+log.txt
 .DS_Store

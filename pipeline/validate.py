@@ -7,12 +7,33 @@ Uses Pydantic for type-safe schemas and adds arithmetic sanity checks
 This catches VLM mistakes before the data reaches the user.
 """
 
+import re
 from typing import Optional
 from pydantic import BaseModel, field_validator
 
 
+# ── Coercion Helper ───────────────────────────────────────────────────────────
+
+def _clean_numeric(v) -> Optional[float]:
+    """Safely convert strings like '077', '97.0', '95', or '-' into floats or None."""
+    if v is None:
+        return None
+    if isinstance(v, (int, float)):
+        return float(v)
+    s = str(v).strip()
+    if s in ["", "-", "–", "—", "null", "None", "N/A", "NA", "AB", "ABSENT"]:
+        return None
+    # If a fraction like "450/500", extract numerator
+    if "/" in s:
+        s = s.split("/")[0]
+    cleaned = re.sub(r"[^0-9.]", "", s)
+    try:
+        return float(cleaned) if cleaned else None
+    except ValueError:
+        return None
+
+
 # ── Schema Models ─────────────────────────────────────────────────────────────
-# These define the exact shape of a valid marksheet extraction.
 
 class Subject(BaseModel):
     """One subject row from the marksheet."""
@@ -22,6 +43,11 @@ class Subject(BaseModel):
     total: Optional[float] = None
     max_marks: Optional[float] = None
     grade: Optional[str] = None
+
+    @field_validator("theory", "practical", "total", "max_marks", mode="before")
+    @classmethod
+    def coerce_marks(cls, v):
+        return _clean_numeric(v)
 
 
 class StudentInfo(BaseModel):
@@ -33,6 +59,15 @@ class StudentInfo(BaseModel):
     school_name: Optional[str] = None
     dob: Optional[str] = None
 
+    @field_validator("name", "father_name", "mother_name", mode="before")
+    @classmethod
+    def clean_name_prefixes(cls, v):
+        if not v or not isinstance(v, str):
+            return v
+        s = v.strip()
+        s = re.sub(r"^(Mr\.|Mrs\.|Smt\.|Shri|Master|Km\.|Miss)\s+", "", s, flags=re.IGNORECASE).strip()
+        return s
+
 
 class Result(BaseModel):
     """Overall result summary from the bottom of the marksheet."""
@@ -40,6 +75,28 @@ class Result(BaseModel):
     maximum_marks: Optional[float] = None
     percentage: Optional[str] = None
     status: Optional[str] = None
+
+    @field_validator("total_obtained", "maximum_marks", mode="before")
+    @classmethod
+    def coerce_result_marks(cls, v):
+        return _clean_numeric(v)
+
+    @field_validator("percentage", mode="before")
+    @classmethod
+    def coerce_percentage(cls, v):
+        if not v:
+            return None
+        s = str(v).strip()
+        if "/" in s:
+            parts = s.split("/")
+            try:
+                num = _clean_numeric(parts[0])
+                den = _clean_numeric(parts[1])
+                if num is not None and den is not None and den > 0:
+                    return f"{round((num / den) * 100, 2)}%"
+            except Exception:
+                pass
+        return s
 
     @field_validator("status")
     @classmethod
@@ -71,22 +128,74 @@ class Marksheet(BaseModel):
 def check_arithmetic(marksheet: Marksheet) -> list[str]:
     """
     Verify that theory + practical = total for each subject.
-
-    Returns a list of warning strings (empty = all good).
-    Allows ±1 tolerance for rounding differences.
+    Filters out bogus header rows and auto-reconciles missing practical/IA marks.
     """
     warnings = []
 
+    # 1. Filter out category/header rows that are not subjects
+    BOGUS_LABELS = [
+        "ADDITIONAL SUBJECT", "ADDITIONAL", "COMPULSORY", "ELECTIVE",
+        "INTERNAL ASSESSMENT", "SUPW", "OVERALL RESULT", "RESULT"
+    ]
+    cleaned_subjects = []
+    for s in marksheet.subjects:
+        norm_name = s.name.strip().upper()
+        if any(norm_name == b or norm_name.startswith(b + " ") for b in BOGUS_LABELS) and len(norm_name) <= 22:
+            warnings.append(f"Filtered out non-academic category label row: '{s.name}'")
+            continue
+        cleaned_subjects.append(s)
+    marksheet.subjects = cleaned_subjects
+
+    # 2. Arithmetic reconciliation
     for subj in marksheet.subjects:
-        # Only check when all three values are present
+        # If total is present and theory is present, but practical is missing:
+        if subj.total is not None and subj.theory is not None:
+            diff = round(subj.total - subj.theory, 2)
+            if subj.practical is None and 0 < diff <= 50:
+                subj.practical = diff
+                warnings.append(
+                    f"{subj.name}: Auto-reconciled practical/internal assessment to {diff} "
+                    f"(Total {subj.total} - Theory {subj.theory})"
+                )
+
+        # 2a. Self-healing: if theory equals total, practical was blank/zero
+        if subj.theory is not None and subj.total is not None and subj.theory == subj.total and subj.practical is not None:
+            subj.practical = None
+            warnings.append(f"{subj.name}: Practical reset to null because Theory equals Total ({subj.total})")
+
+        # 2b. Self-healing: if practical was duplicated from theory (e.g. Theory 80, Practical 80 -> Total 160)
+        if subj.practical is not None and subj.theory is not None and subj.practical == subj.theory:
+            if subj.total is None or subj.total > (subj.max_marks or 100.0):
+                subj.practical = None
+                subj.total = subj.theory
+                warnings.append(f"{subj.name}: Reset duplicated practical to null (Total set to {subj.theory})")
+
+        # 2c. Self-healing: subject total cannot exceed max marks
+        max_limit = subj.max_marks or 100.0
+        if subj.total is not None and subj.total > max_limit:
+            if subj.theory is not None and subj.theory <= max_limit:
+                subj.total = subj.theory
+                subj.practical = None
+                warnings.append(f"{subj.name}: Total exceeded {max_limit}; reset to Theory {subj.theory}")
+
+        # 2d. Self-healing: Theory + Practical cannot exceed max marks (e.g. 89 + 20 = 109 > 100)
+        if subj.theory is not None and subj.practical is not None:
+            if (subj.theory + subj.practical) > max_limit:
+                old_prac = subj.practical
+                subj.practical = None
+                subj.total = subj.theory
+                warnings.append(
+                    f"{subj.name}: Practical reset to null because Theory ({subj.theory}) + "
+                    f"Practical ({old_prac}) exceeds max marks {max_limit}"
+                )
+
         if subj.theory is None or subj.practical is None or subj.total is None:
             continue
 
         expected = subj.theory + subj.practical
 
         if abs(expected - subj.total) > 1:
-            # Self-healing: if model recorded maximum marks (e.g. 100) as total obtained,
-            # reconcile total = theory + practical and preserve maximum marks.
+            # If model mistook maximum marks (e.g. 100) as total obtained
             if subj.total in [100.0, 50.0, 75.0, 200.0] and expected < subj.total:
                 old_total = subj.total
                 if subj.max_marks is None:
@@ -111,7 +220,6 @@ def reconcile_aggregate_results(marksheet: Marksheet) -> list[str]:
     reconcile them automatically from the validated subject list.
     """
     warnings = []
-    # Filter valid academic subjects
     academic_subjs = [
         s for s in marksheet.subjects
         if s.total is not None and s.total > 0
