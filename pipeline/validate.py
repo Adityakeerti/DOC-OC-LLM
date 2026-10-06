@@ -178,7 +178,20 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
                 subj.practical = None
                 warnings.append(f"{subj.name}: Total exceeded {max_limit}; reset to Theory {subj.theory}")
 
-        # 2d. Self-healing: Theory + Practical cannot exceed max marks (e.g. 89 + 20 = 109 > 100)
+        # 2d. Self-healing: Practical in a standard 100-mark paper cannot exceed 50
+        # If practical > 50, model mistook total or theory for practical
+        if subj.practical is not None and subj.practical > 50.0 and max_limit <= 100.0:
+            candidate_total = subj.practical
+            subj.practical = None
+            if subj.total is None or subj.total > max_limit or abs(subj.total - candidate_total) > 5:
+                subj.total = candidate_total
+            if subj.theory is not None and subj.theory < subj.total:
+                diff = round(subj.total - subj.theory, 2)
+                if 0 < diff <= 50:
+                    subj.practical = diff
+            warnings.append(f"{subj.name}: Corrected misaligned practical {candidate_total} into Total {subj.total}")
+
+        # 2e. Self-healing: Theory + Practical cannot exceed max marks (e.g. 89 + 20 = 109 > 100)
         if subj.theory is not None and subj.practical is not None:
             if (subj.theory + subj.practical) > max_limit:
                 old_prac = subj.practical
@@ -204,6 +217,14 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
                 warnings.append(
                     f"{subj.name}: Auto-reconciled total marks obtained to {expected} "
                     f"({subj.theory} + {subj.practical}), max marks set to {old_total}"
+                )
+            elif abs(expected - subj.total) <= 3 and expected <= (subj.max_marks or 100.0):
+                # Minor OCR digit confusion (e.g. '98' instead of '96' when Theory=76, Practical=20)
+                old_total = subj.total
+                subj.total = expected
+                warnings.append(
+                    f"{subj.name}: Corrected OCR total digit slip from {old_total} to {expected} "
+                    f"({subj.theory} + {subj.practical})"
                 )
             else:
                 warnings.append(

@@ -92,31 +92,20 @@ CRITICAL EXTRACTION RULES:
    - School / Institution: Full school name and code if visible.
 
 2. SUBJECTS TABLE & MARKS (CBSE, ICSE, STATE BOARDS):
-   - Only extract real academic subjects (e.g. HINDI, ENGLISH, MATHEMATICS, SCIENCE, SOCIAL SCIENCE, SANSKRIT, INFORMATION TECHNOLOGY).
+   - Extract ALL academic subject rows (e.g. HINDI, ENGLISH, MATHEMATICS, SCIENCE, SOCIAL SCIENCE, SANSKRIT, PHYSICS, CHEMISTRY, INFORMATION TECHNOLOGY).
    - NEVER create subject rows for headers or category labels like "ADDITIONAL SUBJECT", "COMPULSORY", "INTERNAL ASSESSMENT", "SUPW", or "RESULT"!
    - "SUB. CODE": 2-3 digit subject code (e.g. 001, 021, 031, 101, 128, 184). Never use code as marks!
-   - Table columns typically appear as:
-     [SUB. CODE] | [SUBJECT] | [THEORY] | [PRACTICAL PR.] | [INTERNAL ASSESS. IA] | [TOTAL] | [TOTAL IN WORDS]
-   - IN EACH ROW, COUNT HOW MANY NUMBERS ARE PRINTED IN THE MARKS SECTION:
-     * If ONLY TWO numbers are printed in that row (e.g. Hindi/English/Sanskrit where practical is blank):
-       - First number = THEORY (e.g. "077", "089", "080")
-       - PRACTICAL = null (the practical and IA columns are completely blank!)
-       - Second number = TOTAL (e.g. "077", "089", "080")
-       - DO NOT invent practical marks, DO NOT copy numbers from other rows, and DO NOT add numbers together!
-     * If THREE numbers are printed in that row (e.g. Maths, Science, Social Science where practical/IA exists):
-       - First number = THEORY (e.g. "077", "072", "075", "058", "74")
-       - Second number = PRACTICAL / IA (e.g. "020", "030", "20", "50")
-       - Third number = TOTAL (e.g. "097", "092", "095", "078", "94")
-     * In ALL cases:
-       - The LAST numeric marks column is ALWAYS the Total marks obtained.
-       - The Total MUST match the text in the "TOTAL IN WORDS" / "योग (शब्दों में)" column (e.g. "SEVENTY SEVEN" -> "077", "EIGHTY NINE" -> "089", "NINETY SEVEN" -> "097", "NINETY TWO" -> "092", "NINETY FIVE" -> "095", "EIGHTY" -> "080").
-       - Total marks for any single subject CAN NEVER exceed 100.
-       - Output all marks as strings in quotes to preserve formatting (e.g. "092", "078", "020", "74").
+   - READ EACH SUBJECT ROW FROM LEFT TO RIGHT:
+     * 1st marks column: THEORY marks (सैद्धान्तिक / लिखित).
+     * 2nd marks column: PRACTICAL or INTERNAL ASSESSMENT (IA/PR) marks. If that cell is blank, empty, or a dash '-', output null.
+     * 3rd marks column: TOTAL marks for that subject. Cross-check with 'TOTAL IN WORDS' column in that row to ensure exact match.
+   - WARNING: DO NOT put the grand total (e.g. 409, 428, 450, 500) into individual subject marks! Every single subject has its own marks (<= 100).
    - "MAX_MARKS": "100" for each subject.
+   - Output all marks as strings in quotes (e.g. "072", "020", "092", "74").
 
 3. OVERALL RESULT:
    - Status: "PASS", "PASSED", "FAIL", or "COMPARTMENT".
-   - Total Obtained: Grand total obtained from the overall result section if printed (e.g. "450" if printed "450/500", "409" if "409/500"), or null.
+   - Total Obtained: Grand total obtained from the overall result section if printed (e.g. "450" if printed "450/500", "409" if "409/500", "428" if "428/500"), or null.
    - Maximum Marks: Total maximum marks across all subjects (e.g. "500", "600"), or null.
    - Percentage: e.g. "90.0%" or null."""
 
