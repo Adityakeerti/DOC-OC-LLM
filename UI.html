@@ -1,1156 +1,1114 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DOC-OC v6 — VLM Inference Dashboard</title>
+  <title>DOC-OC v6 – Document extraction</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0
+    }
 
     :root {
-      --bg:          #0a0a0f;
-      --surface:     #111118;
-      --surface2:    #16161f;
-      --border:      #1e1e2e;
-      --border2:     #252535;
-      --text:        #e2e2f0;
-      --text2:       #9898b8;
-      --text3:       #55556a;
-      --blue:        #4f8ef7;
-      --blue-dim:    rgba(79,142,247,.12);
-      --green:       #2dd4a6;
-      --green-dim:   rgba(45,212,166,.12);
-      --amber:       #f4b942;
-      --amber-dim:   rgba(244,185,66,.12);
-      --red:         #f4566e;
-      --red-dim:     rgba(244,86,110,.12);
-      --purple:      #a78bfa;
-      --purple-dim:  rgba(167,139,250,.12);
-      --mono: 'JetBrains Mono', monospace;
-      --sans: 'Inter', system-ui, sans-serif;
-      --r: 8px;
-      --r-sm: 5px;
+      --bg: #f4f5f7;
+      --surface: #fff;
+      --sub: #fafbfc;
+      --line: #e1e4ea;
+      --text: #171c26;
+      --text2: #4a5365;
+      --text3: #7a8396;
+      --accent: #1d4ed8;
+      --ok: #0f7b4f;
+      --warn: #9a6700;
+      --bad: #b42318;
+      --sans: 'IBM Plex Sans', system-ui, sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, monospace
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%
     }
 
     body {
       font-family: var(--sans);
+      font-size: 14px;
       background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
+      min-height: 100vh;
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased
     }
 
-    /* ─── TOP BAR ─── */
+    button {
+      font-family: inherit
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px
+    }
+
+    /* header */
     .topbar {
-      height: 56px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 24px;
       position: sticky;
       top: 0;
-      z-index: 100;
-      gap: 16px;
-    }
-
-    .topbar-left {
+      z-index: 20;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      height: 52px;
+      padding: 0 24px;
       display: flex;
       align-items: center;
-      gap: 20px;
+      gap: 32px;
+      flex-shrink: 0
     }
 
     .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .brand-logo {
-      font-weight: 700;
-      font-size: 15px;
-      letter-spacing: -0.03em;
-      color: var(--text);
-      white-space: nowrap;
-    }
-
-    .brand-logo em {
-      font-style: normal;
-      background: linear-gradient(90deg, var(--blue), var(--purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .brand-tag {
-      font-size: 10px;
       font-weight: 600;
-      padding: 2px 7px;
-      border-radius: 100px;
-      background: var(--blue-dim);
-      color: var(--blue);
-      border: 1px solid rgba(79,142,247,.25);
-      letter-spacing: .04em;
-      white-space: nowrap;
+      font-size: 15px;
+      white-space: nowrap
     }
 
-    .sep { width: 1px; height: 20px; background: var(--border2); }
-
-    .status-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .brand span {
+      color: var(--text3);
+      font-weight: 400;
+      margin-left: 6px
     }
 
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 11px;
-      font-family: var(--mono);
-      color: var(--text2);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      padding: 4px 10px;
-      border-radius: 100px;
-      white-space: nowrap;
-    }
-
-    .pill-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-    .pill-dot.green { background: var(--green); box-shadow: 0 0 6px rgba(45,212,166,.6); }
-    .pill-dot.blue  { background: var(--blue); }
-    .pill-dot.amber { background: var(--amber); }
-
-    .topbar-right { display: flex; align-items: center; gap: 8px; }
-
-    /* ─── NAV TABS ─── */
     .nav {
       display: flex;
-      gap: 2px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 3px;
+      height: 100%;
+      gap: 4px
     }
 
     .nav-btn {
-      font-family: var(--sans);
+      border: 0;
+      background: none;
+      padding: 0 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text2);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-top: 2px
+    }
+
+    .nav-btn:hover {
+      color: var(--text)
+    }
+
+    .nav-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent)
+    }
+
+    .env {
+      margin-left: auto;
+      display: flex;
+      gap: 20px;
+      font-size: 12px;
+      color: var(--text3)
+    }
+
+    .env b {
+      color: var(--text2);
+      font-weight: 500
+    }
+
+    main {
+      flex: 1;
+      min-width: 0;
+      display: flex
+    }
+
+    .view {
+      display: none;
+      flex: 1;
+      min-width: 0
+    }
+
+    .view.active {
+      display: flex
+    }
+
+    /* buttons */
+    .btn {
       font-size: 12px;
       font-weight: 500;
-      padding: 5px 14px;
+      padding: 6px 12px;
       border-radius: 4px;
-      border: none;
-      cursor: pointer;
-      color: var(--text2);
-      background: transparent;
-      transition: all .15s;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer
     }
 
-    .nav-btn:hover { color: var(--text); background: var(--border); }
-    .nav-btn.active { color: var(--text); background: var(--surface2); border: 1px solid var(--border2); }
+    .btn:hover {
+      background: var(--bg)
+    }
 
-    /* ─── MAIN SHELL ─── */
-    main { flex: 1; display: flex; flex-direction: column; }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff
+    }
 
-    .view { display: none; flex: 1; }
-    .view.active { display: flex; }
+    .btn-primary:hover {
+      background: #1e40af
+    }
 
-    /* ══════════════════════════════════════════
-       VIEW 1 — LIVE PLAYGROUND (split layout)
-       ══════════════════════════════════════════ */
+    /* playground */
     .playground {
       width: 100%;
-      height: calc(100vh - 56px);
       display: grid;
-      grid-template-columns: 420px 1fr;
+      grid-template-columns: clamp(300px, 30vw, 420px) minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr);
+      height: calc(100vh - 52px);
+      height: calc(100dvh - 52px);
+      min-height: 560px
     }
 
-    /* LEFT PANE */
     .pane-left {
+      min-width: 0;
+      overflow: hidden;
+      background: var(--surface);
+      border-right: 1px solid var(--line);
       display: flex;
       flex-direction: column;
-      border-right: 1px solid var(--border);
-      background: var(--surface);
-      overflow: hidden;
+      min-height: 0
+    }
+
+    .pane-right {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden
     }
 
     .pane-header {
-      height: 44px;
+      height: 48px;
+      padding: 0 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 16px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--line);
       flex-shrink: 0;
+      background: var(--surface)
     }
 
     .pane-title {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--text2);
+      font-size: 13px;
+      font-weight: 600
     }
 
-    .pane-actions { display: flex; gap: 6px; }
-
-    .btn {
-      font-family: var(--sans);
-      font-size: 11px;
-      font-weight: 600;
-      padding: 5px 12px;
-      border-radius: var(--r-sm);
-      border: 1px solid var(--border2);
-      background: var(--surface2);
-      color: var(--text2);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      transition: all .15s;
+    .pane-actions {
+      display: flex;
+      gap: 8px
     }
 
-    .btn:hover { color: var(--text); border-color: var(--blue); }
-
-    .btn-primary {
-      background: var(--blue);
-      border-color: var(--blue);
-      color: #fff;
-    }
-
-    .btn-primary:hover { background: #3a7be0; border-color: #3a7be0; color: #fff; }
-
-    /* Dropzone */
     .dropzone {
-      margin: 14px;
-      border: 1.5px dashed var(--border2);
-      border-radius: var(--r);
-      padding: 20px 16px;
+      margin: 16px;
+      border: 1px dashed #b8bfcc;
+      border-radius: 6px;
+      padding: 16px;
       text-align: center;
       cursor: pointer;
-      transition: all .2s;
-      flex-shrink: 0;
+      flex-shrink: 0
     }
 
-    .dropzone:hover, .dropzone.drag-active {
-      border-color: var(--blue);
-      background: var(--blue-dim);
+    .dropzone:hover,
+    .dropzone.drag-active {
+      border-color: var(--accent);
+      background: #eff4ff
     }
 
-    .dropzone-icon { font-size: 24px; margin-bottom: 8px; opacity: .5; }
-    .dropzone-text { font-size: 13px; font-weight: 500; color: var(--text2); }
-    .dropzone-sub  { font-size: 11px; color: var(--text3); margin-top: 4px; }
+    .dropzone-text {
+      font-size: 13px;
+      font-weight: 500
+    }
 
-    /* Document Viewport */
+    .dropzone-sub {
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 3px
+    }
+
     .doc-viewport {
       flex: 1;
-      background: #080810;
+      min-height: 200px;
+      background: #e9ebef;
+      border-top: 1px solid var(--line);
       display: flex;
       align-items: center;
       justify-content: center;
-      overflow: hidden;
       position: relative;
+      overflow: hidden
     }
 
     .viewport-placeholder {
+      font-size: 13px;
+      color: var(--text3);
       text-align: center;
-      max-width: 220px;
+      line-height: 1.6;
+      padding: 24px
     }
 
-    .viewport-placeholder-icon { font-size: 32px; opacity: .2; margin-bottom: 12px; }
-    .viewport-placeholder-text { font-size: 12px; color: var(--text3); line-height: 1.6; }
+    .viewport-img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: none
+    }
 
-    .viewport-img { max-width: 100%; max-height: 100%; object-fit: contain; display: none; }
-    .viewport-frame { width: 100%; height: 100%; border: none; display: none; }
+    .viewport-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: none
+    }
 
-    /* Loader */
     .loader-overlay {
-      position: absolute; inset: 0;
-      background: rgba(8,8,16,.8);
-      backdrop-filter: blur(3px);
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, .85);
       display: none;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 14px;
-      z-index: 10;
+      gap: 12px;
+      z-index: 5
     }
 
     .loader-ring {
-      width: 36px; height: 36px;
-      border: 2px solid var(--border2);
-      border-top-color: var(--blue);
+      width: 28px;
+      height: 28px;
+      border: 3px solid var(--line);
+      border-top-color: var(--accent);
       border-radius: 50%;
-      animation: spin .7s linear infinite;
+      animation: spin .8s linear infinite
     }
 
-    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg)
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce) {
+      .loader-ring {
+        animation-duration: 2s
+      }
+    }
 
     .loader-label {
       font-family: var(--mono);
       font-size: 12px;
-      color: var(--text2);
-    }
-
-    /* RIGHT PANE */
-    .pane-right {
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
+      color: var(--text2)
     }
 
     .results-scroll {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
-      padding: 20px;
-      display: flex;
+      padding: 20px 24px;
       flex-direction: column;
-      gap: 16px;
+      gap: 16px
     }
 
-    .results-scroll::-webkit-scrollbar { width: 4px; }
-    .results-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
-
-    /* Empty state */
     .empty-state {
       flex: 1;
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 12px;
       color: var(--text3);
+      font-size: 13px;
+      text-align: center;
+      padding: 24px
     }
 
-    .empty-state-icon { font-size: 40px; opacity: .3; }
-    .empty-state-text { font-size: 13px; }
-
-    /* ─── KPI STRIP (4 cards) ─── */
-    .kpi-strip {
+    /* metric strip */
+    .strip {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-
-    .kpi-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .kpi-label {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--text3);
-    }
-
-    .kpi-val {
-      font-family: var(--mono);
-      font-size: 20px;
-      font-weight: 600;
-      line-height: 1;
-    }
-
-    .kpi-sub {
-      font-size: 10px;
-      color: var(--text3);
-      font-family: var(--mono);
-    }
-
-    /* ─── WATERFALL ─── */
-    .waterfall-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .waterfall-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .waterfall-title {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--text3);
-    }
-
-    .waterfall-total {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--text2);
-    }
-
-    .waterfall-track {
-      height: 8px;
-      background: var(--surface2);
-      border-radius: 100px;
+      gap: 1px;
+      background: var(--line);
+      border: 1px solid var(--line);
+      border-radius: 6px;
       overflow: hidden;
-      display: flex;
+      flex-shrink: 0
     }
 
-    .wf-seg { height: 100%; }
-    .wf-prep  { background: var(--purple); }
-    .wf-infer { background: var(--blue); }
-    .wf-val   { background: var(--green); }
-
-    .waterfall-legend {
-      display: flex;
-      gap: 16px;
+    .strip.c4 {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr))
     }
 
-    .wf-leg-item {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 10px;
+    .strip.c6 {
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr))
+    }
+
+    .cell {
+      padding: 14px 16px;
+      min-width: 0;
+      background: var(--surface)
+    }
+
+    .cell-label {
+      font-size: 12px;
+      color: var(--text3)
+    }
+
+    .cell-val {
       font-family: var(--mono);
-      color: var(--text2);
+      font-size: clamp(18px, 1.7vw, 22px);
+      font-weight: 500;
+      margin-top: 4px;
+      letter-spacing: -.02em
     }
 
-    .wf-leg-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+    .cell-sub {
+      font-size: 12px;
+      color: var(--text3);
+      margin-top: 2px
+    }
 
-    /* ─── CARD PANEL ─── */
+    .ok {
+      color: var(--ok)
+    }
+
+    .bad {
+      color: var(--bad)
+    }
+
+    .warn {
+      color: var(--warn)
+    }
+
+    /* panels */
     .card {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      overflow-x: auto;
+      min-width: 0;
+      flex-shrink: 0
+    }
+
+    .card table {
+      min-width: 500px
+    }
+
+    .card table.wide {
+      min-width: 780px
+    }
+
+    .three .card table {
+      min-width: 0
     }
 
     .card-head {
-      padding: 10px 16px;
-      background: var(--surface2);
-      border-bottom: 1px solid var(--border);
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--line);
       display: flex;
-      align-items: center;
       justify-content: space-between;
-    }
-
-    .card-head-title {
-      font-size: 11px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      color: var(--text2);
-    }
-
-    .badge {
-      display: inline-flex;
       align-items: center;
-      gap: 4px;
-      font-size: 10px;
-      font-weight: 600;
-      font-family: var(--mono);
-      padding: 2px 8px;
-      border-radius: 100px;
+      gap: 12px
     }
 
-    .badge-green  { background: var(--green-dim);  color: var(--green);  border: 1px solid rgba(45,212,166,.2); }
-    .badge-blue   { background: var(--blue-dim);   color: var(--blue);   border: 1px solid rgba(79,142,247,.2); }
-    .badge-amber  { background: var(--amber-dim);  color: var(--amber);  border: 1px solid rgba(244,185,66,.2); }
-    .badge-red    { background: var(--red-dim);    color: var(--red);    border: 1px solid rgba(244,86,110,.2); }
-    .badge-purple { background: var(--purple-dim); color: var(--purple); border: 1px solid rgba(167,139,250,.2); }
-
-    /* Fields grid (student info) */
-    .fields-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px;
-      padding: 16px;
+    .card-head h3 {
+      font-size: 13px;
+      font-weight: 600
     }
 
-    .field-item { display: flex; flex-direction: column; gap: 4px; }
-    .field-key  { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); }
-    .field-val  { font-size: 13px; font-weight: 600; color: var(--text); }
-
-    /* Table */
-    table { width: 100%; border-collapse: collapse; }
-    thead th {
-      padding: 9px 14px;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      color: var(--text3);
-      background: var(--surface2);
-      border-bottom: 1px solid var(--border);
-      text-align: left;
+    .card-meta {
+      font-size: 12px;
+      color: var(--text3)
     }
 
-    tbody td {
-      padding: 9px 14px;
+    .tag {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 1px 8px;
+      border-radius: 3px;
+      border: 1px solid var(--line);
+      background: var(--sub);
+      color: var(--text2);
+      white-space: nowrap
+    }
+
+    .tag.ok {
+      color: var(--ok);
+      background: #ecf8f2;
+      border-color: #bfe5d3
+    }
+
+    .tag.warn {
+      color: var(--warn);
+      background: #fdf5e1;
+      border-color: #ecd9a2
+    }
+
+    .tag.bad {
+      color: var(--bad);
+      background: #fdeceb;
+      border-color: #f3c3bf
+    }
+
+    .tag.info {
+      color: var(--accent);
+      background: #eff4ff;
+      border-color: #c7d6fb
+    }
+
+    .waterfall {
+      padding: 14px 16px
+    }
+
+    .wf-track {
+      height: 8px;
+      border-radius: 2px;
+      display: flex;
+      overflow: hidden;
+      background: var(--line);
+      margin: 10px 0
+    }
+
+    .wf-prep {
+      background: #9aa4b8
+    }
+
+    .wf-infer {
+      background: var(--accent)
+    }
+
+    .wf-val {
+      background: #0f7b4f
+    }
+
+    .wf-legend {
+      display: flex;
+      gap: 20px;
       font-size: 12px;
       color: var(--text2);
-      border-bottom: 1px solid var(--border);
+      font-family: var(--mono)
     }
 
-    tbody tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: rgba(255,255,255,.015); }
+    .wf-legend i {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 1px;
+      margin-right: 6px
+    }
 
-    .num { font-family: var(--mono); }
+    .fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 24px;
+      padding: 16px
+    }
 
-    /* JSON pre */
-    .json-pre {
-      padding: 14px;
+    .field span {
+      display: block;
+      font-size: 12px;
+      color: var(--text3);
+      margin-bottom: 2px
+    }
+
+    .field b {
+      font-weight: 500
+    }
+
+    .field.wide {
+      grid-column: span 2
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse
+    }
+
+    th {
+      padding: 9px 16px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text3);
+      background: var(--sub);
+      border-bottom: 1px solid var(--line);
+      text-align: left
+    }
+
+    td {
+      padding: 9px 16px;
+      font-size: 13px;
+      color: var(--text2);
+      border-bottom: 1px solid var(--line)
+    }
+
+    tbody tr:last-child td {
+      border-bottom: 0
+    }
+
+    .r {
+      text-align: right
+    }
+
+    .c {
+      text-align: center
+    }
+
+    .num {
       font-family: var(--mono);
-      font-size: 11px;
-      color: #7ec8e3;
+      font-variant-numeric: tabular-nums
+    }
+
+    tr.hl td {
+      background: #f5f8ff
+    }
+
+    td strong {
+      color: var(--text);
+      font-weight: 600
+    }
+
+    .json-pre {
+      padding: 14px 16px;
+      font-family: var(--mono);
+      font-size: 12px;
       line-height: 1.6;
+      color: #2b3445;
+      background: var(--sub);
       white-space: pre-wrap;
       word-break: break-all;
       max-height: 260px;
-      overflow-y: auto;
-      background: #06060e;
+      overflow: auto
     }
 
-    .json-pre::-webkit-scrollbar { width: 3px; }
-    .json-pre::-webkit-scrollbar-thumb { background: var(--border2); }
-
-    /* ══════════════════════════════════════════
-       VIEW 2 — BENCHMARK DASHBOARD
-       ══════════════════════════════════════════ */
-    .bench-view {
+    /* benchmark */
+    .bench {
       width: 100%;
-      max-width: 1280px;
+      min-width: 0;
+      max-width: 1240px;
       margin: 0 auto;
-      padding: 28px 24px;
+      padding: 24px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
-      overflow-y: auto;
+      gap: 20px
     }
 
-    /* Section labels */
-    .section-label {
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      color: var(--text3);
-      margin-bottom: 12px;
-    }
-
-    /* Hero bar */
-    .bench-hero {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 20px 24px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .bench-hero-left h1 {
+    .bench h1 {
       font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -.03em;
+      font-weight: 600;
+      letter-spacing: -.01em
     }
 
-    .bench-hero-left p {
-      font-size: 12px;
+    .bench-lede {
+      font-size: 13px;
       color: var(--text2);
       margin-top: 4px;
-      line-height: 1.5;
+      max-width: 70ch;
+      line-height: 1.5
     }
 
-    .bench-hero-right {
-      display: flex;
-      gap: 8px;
-      flex-shrink: 0;
-    }
-
-    /* Bench KPI row (6 cards) */
-    .bench-kpi-row {
+    .three {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 12px;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      align-items: start
     }
-
-    .bench-kpi-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .bench-kpi-label {
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      color: var(--text3);
-    }
-
-    .bench-kpi-val {
-      font-family: var(--mono);
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: -.03em;
-      line-height: 1;
-    }
-
-    .bench-kpi-delta {
-      font-size: 11px;
-      font-weight: 500;
-    }
-
-    /* Two-column panels */
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-
-    /* Per-sample bar chart */
-    .bar-chart-rows { padding: 12px 0; display: flex; flex-direction: column; }
 
     .bar-row {
       display: grid;
-      grid-template-columns: 120px 1fr 64px;
-      align-items: center;
+      grid-template-columns: 96px 1fr 56px;
       gap: 12px;
-      padding: 7px 16px;
-      border-bottom: 1px solid var(--border);
+      align-items: center;
+      padding: 8px 16px;
+      border-bottom: 1px solid var(--line);
+      font-size: 12px;
+      color: var(--text2)
     }
 
-    .bar-row:last-child { border-bottom: none; }
+    .bar-row:last-child {
+      border-bottom: 0
+    }
 
-    .bar-row-label { font-size: 11px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .bar-track {
+    .bar {
       height: 6px;
-      background: var(--surface2);
-      border-radius: 100px;
-      overflow: hidden;
+      background: var(--line);
+      border-radius: 2px;
+      overflow: hidden
     }
 
-    .bar-fill { height: 100%; border-radius: 100px; background: var(--blue); }
-    .bar-fill.green { background: var(--green); }
-
-    .bar-val { font-family: var(--mono); font-size: 11px; color: var(--text2); text-align: right; }
-
-    /* Token budget */
-    .token-rows { padding: 14px 16px; display: flex; flex-direction: column; gap: 14px; }
-
-    .token-row { display: flex; flex-direction: column; gap: 6px; }
-
-    .token-row-head {
-      display: flex;
-      justify-content: space-between;
-      font-size: 11px;
-      font-family: var(--mono);
-      color: var(--text2);
-    }
-
-    .token-bar-track {
-      height: 8px;
-      background: var(--surface2);
-      border-radius: 100px;
-      overflow: hidden;
-    }
-
-    .token-bar-fill {
+    .bar i {
+      display: block;
       height: 100%;
-      border-radius: 100px;
+      background: var(--accent)
     }
 
-    /* Layer blocks */
-    .layer-blocks { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-
-    .layer-item {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 12px;
-      align-items: center;
+    .bar i.g {
+      background: var(--ok)
     }
 
-    .layer-info { display: flex; flex-direction: column; gap: 3px; }
-    .layer-name  { font-size: 11px; font-family: var(--mono); color: var(--text2); }
-    .layer-note  { font-size: 10px; color: var(--text3); }
-    .layer-badge { flex-shrink: 0; }
+    .bar i.n {
+      background: #9aa4b8
+    }
 
-    /* Bottom footnote */
-    .bench-footnote {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 14px 18px;
-      font-size: 11px;
+    .bar-row .num {
+      text-align: right
+    }
+
+    .note {
+      padding: 12px 16px;
+      font-size: 12px;
       color: var(--text3);
-      line-height: 1.7;
+      line-height: 1.6;
+      border-top: 1px solid var(--line)
     }
 
-    .bench-footnote strong { color: var(--text2); font-weight: 600; }
+    .foot {
+      font-size: 12px;
+      color: var(--text3);
+      line-height: 1.7
+    }
+
+    @media(max-width:1200px) {
+      .env {
+        display: none
+      }
+    }
+
+    @media(max-width:980px) {
+      .playground {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+        height: auto;
+        min-height: 0
+      }
+
+      .pane-left {
+        border-right: 0;
+        border-bottom: 1px solid var(--line)
+      }
+
+      .pane-right {
+        overflow: visible
+      }
+
+      .doc-viewport {
+        flex: none;
+        height: 60vh;
+        min-height: 300px
+      }
+
+      .results-scroll {
+        overflow: visible;
+        padding: 16px
+      }
+
+      .topbar {
+        padding: 0 16px;
+        gap: 16px
+      }
+
+      .fields {
+        grid-template-columns: 1fr
+      }
+
+      .field.wide {
+        grid-column: auto
+      }
+
+      .bench {
+        padding: 16px
+      }
+    }
+
+    @media(max-width:560px) {
+      .bar-row {
+        grid-template-columns: 76px 1fr 52px;
+        padding: 8px 12px
+      }
+
+      .wf-legend {
+        flex-wrap: wrap;
+        gap: 8px 16px
+      }
+    }
   </style>
 </head>
+
 <body>
 
-  <!-- ─── TOP BAR ─── -->
   <header class="topbar">
-    <div class="topbar-left">
-      <div class="brand">
-        <div class="brand-logo"><em>DOC-OC</em> v6</div>
-        <span class="brand-tag">EDGE INFERENCE</span>
-      </div>
-      <div class="sep"></div>
-      <div class="status-row">
-        <span class="pill"><span class="pill-dot green"></span>CUDA RTX 4050 · 6 GB</span>
-        <span class="pill"><span class="pill-dot blue"></span>GBNF Logit-Masking</span>
-        <span class="pill"><span class="pill-dot amber"></span>Reasoning Budget: 0</span>
-      </div>
-    </div>
-
-    <div class="topbar-right">
-      <div class="nav">
-        <button class="nav-btn active" id="tab-playground" onclick="switchView('playground')">Live Playground</button>
-        <button class="nav-btn" id="tab-benchmark" onclick="switchView('benchmark')">Benchmark Telemetry</button>
-      </div>
+    <div class="brand">DOC-OC <span>v6</span></div>
+    <nav class="nav">
+      <button class="nav-btn active" id="tab-playground" onclick="switchView('playground')">Extraction</button>
+      <button class="nav-btn" id="tab-benchmark" onclick="switchView('benchmark')">Benchmark</button>
+    </nav>
+    <div class="env">
+      <span>GPU <b>RTX 4050, 6 GB</b></span>
+      <span>Decoding <b>GBNF constrained</b></span>
+      <span>Reasoning budget <b>0</b></span>
     </div>
   </header>
 
   <main>
-
-    <!-- ══════════════════════════════════════
-         VIEW 1 — LIVE INFERENCE PLAYGROUND
-         ══════════════════════════════════════ -->
-    <section class="view playground active" id="view-playground">
-
-      <!-- LEFT — Document Ingestion -->
-      <div class="pane-left">
-        <div class="pane-header">
-          <span class="pane-title">Source Document</span>
-          <div class="pane-actions">
-            <button class="btn" onclick="loadSample('10_6')">Load Sample</button>
-            <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">↑ Upload</button>
+    <!-- Extraction -->
+    <section class="view active" id="view-playground">
+      <div class="playground">
+        <div class="pane-left">
+          <div class="pane-header">
+            <span class="pane-title">Source document</span>
+            <div class="pane-actions">
+              <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">Upload File</button>
+            </div>
+          </div>
+          <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
+            <div class="dropzone-text">Drop a marksheet or certificate here</div>
+            <div class="dropzone-sub">PDF, PNG or JPG. Resized to 1200 px before extraction.</div>
+          </div>
+          <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.pdf" style="display:none">
+          <div class="doc-viewport" id="doc-viewport">
+            <div class="viewport-placeholder" id="viewport-placeholder">No document loaded.<br>Upload a PDF, PNG or JPG marksheet above.</div>
+            <img id="viewport-img" class="viewport-img" alt="Uploaded document">
+            <iframe id="viewport-frame" class="viewport-frame" title="PDF viewer"></iframe>
+            <div class="loader-overlay" id="loader-overlay">
+              <div class="loader-ring"></div>
+              <div class="loader-label" id="loader-timer">Extracting: 0.0s</div>
+            </div>
           </div>
         </div>
 
-        <div class="dropzone" id="dropzone" onclick="document.getElementById('file-input').click()">
-          <div class="dropzone-icon">📄</div>
-          <div class="dropzone-text">Drop or select marksheet / certificate</div>
-          <div class="dropzone-sub">PDF · PNG · JPG — Lanczos 1200 px rescaling</div>
-        </div>
-        <input type="file" id="file-input" accept=".jpg,.jpeg,.png,.pdf" style="display:none;">
-
-        <div class="doc-viewport" id="doc-viewport">
-          <div class="viewport-placeholder" id="viewport-placeholder">
-            <div class="viewport-placeholder-icon">🖼</div>
-            <div class="viewport-placeholder-text">No document loaded.<br>Upload a file or click <strong>Load Sample</strong>.</div>
+        <div class="pane-right">
+          <div class="pane-header">
+            <span class="pane-title">Extraction result</span>
+            <button class="btn" id="btn-copy" onclick="copyJson()" style="display:none">Copy JSON</button>
           </div>
-          <img id="viewport-img" class="viewport-img" alt="Document">
-          <iframe id="viewport-frame" class="viewport-frame" title="PDF Viewer"></iframe>
+          <div class="empty-state" id="results-empty">Upload a document on the left to see extracted fields and timing.</div>
 
-          <div class="loader-overlay" id="loader-overlay">
-            <div class="loader-ring"></div>
-            <div class="loader-label" id="loader-timer">Executing GBNF decoding: 0.0s</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT — Inference Results -->
-      <div class="pane-right">
-        <div class="pane-header" style="border-bottom:1px solid var(--border);">
-          <span class="pane-title">Inference Telemetry &amp; Extraction Output</span>
-          <button class="btn" id="btn-copy" onclick="copyJson()" style="display:none;">Copy JSON</button>
-        </div>
-
-        <!-- Empty state -->
-        <div class="empty-state" id="results-empty">
-          <div class="empty-state-icon">⚡</div>
-          <div class="empty-state-text">Upload a document or load the sample to run VLM extraction.</div>
-        </div>
-
-        <!-- Results stream (hidden until data arrives) -->
-        <div class="results-scroll" id="results-stream" style="display:none;">
-
-          <!-- KPI Strip -->
-          <div class="kpi-strip">
-            <div class="kpi-card">
-              <div class="kpi-label">Warm Latency</div>
-              <div class="kpi-val" id="kpi-latency" style="color:var(--blue);">—</div>
-              <div class="kpi-sub">VLM inference time</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">Schema Adherence</div>
-              <div class="kpi-val" style="color:var(--green);">100%</div>
-              <div class="kpi-sub">GBNF logit-masked</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">Total Marks</div>
-              <div class="kpi-val" id="kpi-marks">—</div>
-              <div class="kpi-sub" id="kpi-pct">—</div>
-            </div>
-            <div class="kpi-card">
-              <div class="kpi-label">Result Status</div>
-              <div class="kpi-val" id="kpi-status" style="color:var(--green);">—</div>
-              <div class="kpi-sub">Board verification</div>
-            </div>
-          </div>
-
-          <!-- Latency Waterfall -->
-          <div class="waterfall-card">
-            <div class="waterfall-head">
-              <span class="waterfall-title">Latency Waterfall</span>
-              <span class="waterfall-total" id="waterfall-total">Total: —</span>
-            </div>
-            <div class="waterfall-track">
-              <div class="wf-seg wf-prep"  id="seg-prep"  style="width:3%"></div>
-              <div class="wf-seg wf-infer" id="seg-infer" style="width:95%"></div>
-              <div class="wf-seg wf-val"   id="seg-val"   style="width:2%"></div>
-            </div>
-            <div class="waterfall-legend">
-              <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--purple);"></div><span id="timing-prep">Prep: —</span></div>
-              <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--blue);"></div><span id="timing-infer">VLM: —</span></div>
-              <div class="wf-leg-item"><div class="wf-leg-dot" style="background:var(--green);"></div><span id="timing-val">Validate: —</span></div>
-            </div>
-          </div>
-
-          <!-- Student Info -->
-          <div class="card">
-            <div class="card-head">
-              <span class="card-head-title" id="info-board">Academic Board</span>
-              <span class="badge badge-green" id="badge-recon">✓ Reconciliation Passed</span>
-            </div>
-            <div class="fields-grid">
-              <div class="field-item">
-                <span class="field-key">Candidate Name</span>
-                <span class="field-val" id="info-name">—</span>
+          <div class="results-scroll" id="results-stream" style="display:none">
+            <div class="strip c4">
+              <div class="cell">
+                <div class="cell-label">Inference time</div>
+                <div class="cell-val" id="kpi-latency">–</div>
+                <div class="cell-sub">Warm, VLM only</div>
               </div>
-              <div class="field-item">
-                <span class="field-key">Roll Number</span>
-                <span class="field-val" id="info-roll" style="font-family:var(--mono);">—</span>
+              <div class="cell">
+                <div class="cell-label">Schema adherence</div>
+                <div class="cell-val ok">100%</div>
+                <div class="cell-sub">Grammar-constrained</div>
               </div>
-              <div class="field-item">
-                <span class="field-key">Father / Guardian</span>
-                <span class="field-val" id="info-father">—</span>
+              <div class="cell">
+                <div class="cell-label">Total marks</div>
+                <div class="cell-val" id="kpi-marks">–</div>
+                <div class="cell-sub" id="kpi-pct">–</div>
               </div>
-              <div class="field-item">
-                <span class="field-key">Mother's Name</span>
-                <span class="field-val" id="info-mother">—</span>
-              </div>
-              <div class="field-item" style="grid-column:span 2;">
-                <span class="field-key">Institution</span>
-                <span class="field-val" id="info-school">—</span>
+              <div class="cell">
+                <div class="cell-label">Result</div>
+                <div class="cell-val" id="kpi-status">–</div>
+                <div class="cell-sub">As printed on document</div>
               </div>
             </div>
-          </div>
 
-          <!-- Subjects Table -->
-          <div class="card">
-            <div class="card-head">
-              <span class="card-head-title">Subject Marks Breakdown</span>
-              <span class="badge badge-blue" id="subject-count">0 Subjects</span>
+            <div class="card">
+              <div class="card-head">
+                <h3>Latency breakdown</h3><span class="card-meta num" id="waterfall-total">Total –</span>
+              </div>
+              <div class="waterfall">
+                <div class="wf-track">
+                  <div class="wf-prep" id="seg-prep" style="width:3%"></div>
+                  <div class="wf-infer" id="seg-infer" style="width:95%"></div>
+                  <div class="wf-val" id="seg-val" style="width:2%"></div>
+                </div>
+                <div class="wf-legend">
+                  <span><i style="background:#9aa4b8"></i><span id="timing-prep">Preprocess –</span></span>
+                  <span><i style="background:var(--accent)"></i><span id="timing-infer">VLM –</span></span>
+                  <span><i style="background:var(--ok)"></i><span id="timing-val">Validate –</span></span>
+                </div>
+              </div>
             </div>
-            <table>
-              <thead>
-                <tr>
-                  <th>Subject</th>
-                  <th style="text-align:right;">Theory</th>
-                  <th style="text-align:right;">Practical</th>
-                  <th style="text-align:right;">Total</th>
-                  <th style="text-align:right;">Max</th>
-                  <th style="text-align:center;">Grade</th>
-                </tr>
-              </thead>
-              <tbody id="subjects-tbody"></tbody>
-            </table>
-          </div>
 
-          <!-- Raw JSON -->
-          <div class="card">
-            <div class="card-head">
-              <span class="card-head-title">Raw JSON Payload (Pydantic)</span>
+            <div class="card">
+              <div class="card-head">
+                <h3 id="info-board">Board</h3><span class="tag ok" id="badge-recon">Totals reconcile</span>
+              </div>
+              <div class="fields">
+                <div class="field"><span>Candidate name</span><b id="info-name">–</b></div>
+                <div class="field"><span>Roll number</span><b class="num" id="info-roll">–</b></div>
+                <div class="field"><span>Father or guardian</span><b id="info-father">–</b></div>
+                <div class="field"><span>Mother</span><b id="info-mother">–</b></div>
+                <div class="field wide"><span>Institution</span><b id="info-school">–</b></div>
+              </div>
             </div>
-            <pre class="json-pre" id="raw-json"></pre>
-          </div>
 
+            <div class="card">
+              <div class="card-head">
+                <h3>Subject marks</h3><span class="card-meta" id="subject-count">0 subjects</span>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Subject</th>
+                    <th class="r">Theory</th>
+                    <th class="r">Practical</th>
+                    <th class="r">Total</th>
+                    <th class="r">Max</th>
+                    <th class="c">Grade</th>
+                  </tr>
+                </thead>
+                <tbody id="subjects-tbody"></tbody>
+              </table>
+            </div>
+
+            <div class="card">
+              <div class="card-head">
+                <h3>JSON output</h3><span class="card-meta">Validated with Pydantic</span>
+              </div>
+              <pre class="json-pre" id="raw-json"></pre>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- ══════════════════════════════════════
-         VIEW 2 — BENCHMARK TELEMETRY
-         ══════════════════════════════════════ -->
+    <!-- Benchmark -->
     <section class="view" id="view-benchmark">
-      <div class="bench-view">
+      <div class="bench">
+        <div>
+          <h1>Performance benchmark</h1>
+          <p class="bench-lede">8 authentic multi-board Indian marksheets on an NVIDIA RTX 4050 6 GB laptop GPU, using
+            llama.cpp with CUDA and FlashAttention.</p>
+        </div>
 
-        <!-- Hero -->
-        <div class="bench-hero">
-          <div class="bench-hero-left">
-            <h1>Empirical Performance Benchmark</h1>
-            <p>Benchmarked across <strong>8 multi-board authentic Indian academic marksheets</strong> on NVIDIA RTX 4050 6 GB Laptop GPU &nbsp;·&nbsp; llama.cpp CUDA + FlashAttention</p>
+        <div class="strip c6">
+          <div class="cell">
+            <div class="cell-label">Warm latency (avg)</div>
+            <div class="cell-val">6.28 s</div>
+            <div class="cell-sub ok">4.32× faster than 27.12 s baseline</div>
           </div>
-          <div class="bench-hero-right">
-            <span class="badge badge-green">Production Ready</span>
-            <span class="badge badge-blue">8 Samples</span>
+          <div class="cell">
+            <div class="cell-label">Cold start</div>
+            <div class="cell-val">8.11 s</div>
+            <div class="cell-sub">First run, includes model load</div>
+          </div>
+          <div class="cell">
+            <div class="cell-label">Decode throughput</div>
+            <div class="cell-val">83</div>
+            <div class="cell-sub">tokens per second</div>
+          </div>
+          <div class="cell">
+            <div class="cell-label">Schema adherence</div>
+            <div class="cell-val">100%</div>
+            <div class="cell-sub">Grammar-constrained</div>
+          </div>
+          <div class="cell">
+            <div class="cell-label">VRAM</div>
+            <div class="cell-val">3.2 GB</div>
+            <div class="cell-sub">of 6 GB available</div>
+          </div>
+          <div class="cell">
+            <div class="cell-label">Cost per document</div>
+            <div class="cell-val">$0.00</div>
+            <div class="cell-sub">Fully offline</div>
           </div>
         </div>
 
-        <!-- KPI Row -->
-        <div>
-          <div class="section-label">Key Performance Indicators</div>
-          <div class="bench-kpi-row">
-            <div class="bench-kpi-card">
-              <div class="bench-kpi-label">Warm Latency (Avg)</div>
-              <div class="bench-kpi-val" style="color:var(--blue);">6.28s</div>
-              <div class="bench-kpi-delta" style="color:var(--green);">↓ 4.32× from 27.12s baseline</div>
-            </div>
-            <div class="bench-kpi-card">
-              <div class="bench-kpi-label">Cold Start</div>
-              <div class="bench-kpi-val" style="color:var(--purple);">8.11s</div>
-              <div class="bench-kpi-delta" style="color:var(--text3);">First-run model load</div>
-            </div>
-            <div class="bench-kpi-card">
-              <div class="bench-kpi-label">Throughput</div>
-              <div class="bench-kpi-val" style="color:var(--amber);">83</div>
-              <div class="bench-kpi-delta" style="color:var(--text3);">tok/s decode</div>
-            </div>
-            <div class="bench-kpi-card">
-              <div class="bench-kpi-label">Schema Adherence</div>
-              <div class="bench-kpi-val" style="color:var(--green);">100%</div>
-              <div class="bench-kpi-delta" style="color:var(--text3);">GBNF logit-masked</div>
-            </div>
-            <div class="bench-kpi-card">
-              <div class="bench-kpi-label">VRAM Footprint</div>
-              <div class="bench-kpi-val">3.2 GB</div>
-              <div class="bench-kpi-delta" style="color:var(--text3);">of 6 GB available</div>
-            </div>
-            <div class="bench-kpi-card">
-              <div class="bench-kpi-label">Cost / Document</div>
-              <div class="bench-kpi-val" style="color:var(--green);">$0.00</div>
-              <div class="bench-kpi-delta" style="color:var(--text3);">100% offline inference</div>
-            </div>
+        <div class="card">
+          <div class="card-head">
+            <h3>Model comparison</h3><span class="card-meta">Indian marksheet extraction</span>
           </div>
+          <table class="wide">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Runtime</th>
+                <th class="r">Avg latency</th>
+                <th class="r">Throughput</th>
+                <th class="r">Schema</th>
+                <th class="r">VRAM</th>
+                <th class="c">Outcome</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="hl">
+                <td><strong>Gemma-4-E2B, optimized</strong></td>
+                <td>llama.cpp, reasoning off, GBNF</td>
+                <td class="r num ok">6.28 s</td>
+                <td class="r num">83 tok/s</td>
+                <td class="r num">100.0%</td>
+                <td class="r num">3.2 GB</td>
+                <td class="c"><span class="tag ok">Production</span></td>
+              </tr>
+              <tr>
+                <td>Gemma-4-E2B, baseline</td>
+                <td>llama.cpp, default reasoning</td>
+                <td class="r num">27.12 s</td>
+                <td class="r num">76 tok/s</td>
+                <td class="r num">100.0%</td>
+                <td class="r num">2.7 GB</td>
+                <td class="c"><span class="tag">Baseline</span></td>
+              </tr>
+              <tr>
+                <td>UI-TARS-7B-DPO</td>
+                <td>vLLM / llama.cpp</td>
+                <td class="r num">36.55 s</td>
+                <td class="r num">38 tok/s</td>
+                <td class="r num warn">75.0%</td>
+                <td class="r num">5.7 GB</td>
+                <td class="c"><span class="tag bad">Octal errors</span></td>
+              </tr>
+              <tr>
+                <td>Qwen2.5-VL-3B-Instruct</td>
+                <td>llama.cpp</td>
+                <td class="r num">–</td>
+                <td class="r num">–</td>
+                <td class="r num bad">0.0%</td>
+                <td class="r num">3.1 GB</td>
+                <td class="c"><span class="tag bad">GBNF crash</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <!-- Model Comparison Table -->
-        <div>
-          <div class="section-label">Model Comparison Matrix</div>
+        <div class="three">
           <div class="card">
             <div class="card-head">
-              <span class="card-head-title">Indian Marksheet Extraction · All Models</span>
+              <h3>Warm latency by sample</h3>
+            </div>
+            <div class="bar-row"><span>10_6</span>
+              <div class="bar"><i style="width:100%"></i></div><span class="num">6.28 s</span>
+            </div>
+            <div class="bar-row"><span>CBSE_7</span>
+              <div class="bar"><i style="width:90%"></i></div><span class="num">5.65 s</span>
+            </div>
+            <div class="bar-row"><span>ICSE_2</span>
+              <div class="bar"><i style="width:97%"></i></div><span class="num">6.09 s</span>
+            </div>
+            <div class="bar-row"><span>STATE_A</span>
+              <div class="bar"><i style="width:83%"></i></div><span class="num">5.21 s</span>
+            </div>
+            <div class="bar-row"><span>STATE_B</span>
+              <div class="bar"><i style="width:89%"></i></div><span class="num">5.59 s</span>
+            </div>
+            <div class="bar-row"><span>ISC_11</span>
+              <div class="bar"><i style="width:92%"></i></div><span class="num">5.78 s</span>
+            </div>
+            <div class="bar-row"><span>MP_5</span>
+              <div class="bar"><i style="width:86%"></i></div><span class="num">5.40 s</span>
+            </div>
+            <div class="bar-row"><span>UP_3</span>
+              <div class="bar"><i style="width:88%"></i></div><span class="num">5.52 s</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Visual token budget</h3>
+            </div>
+            <div class="bar-row"><span>Lanczos 1200 px</span>
+              <div class="bar"><i class="g" style="width:57%"></i></div><span class="num">768</span>
+            </div>
+            <div class="bar-row"><span>Unscaled 4K</span>
+              <div class="bar"><i class="n" style="width:100%"></i></div><span class="num">1344</span>
+            </div>
+            <div class="note">Downscaling to 1200 px on the long edge cuts visual tokens by 43% while keeping text
+              legible for extraction.</div>
+            <div class="bar-row" style="border-top:1px solid var(--line)"><span>Decode, resize</span>
+              <div class="bar"><i class="g" style="width:55%"></i></div><span class="num">0.044 s</span>
+            </div>
+            <div class="bar-row"><span>Base64 encode</span>
+              <div class="bar"><i class="g" style="width:45%"></i></div><span class="num">0.036 s</span>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <h3>Layer redundancy (ShortGPT)</h3><span class="card-meta">Blocks 0–34</span>
             </div>
             <table>
               <thead>
                 <tr>
-                  <th>Model</th>
-                  <th>Runtime / Engine</th>
-                  <th style="text-align:right;">Avg Latency</th>
-                  <th style="text-align:right;">Throughput</th>
-                  <th style="text-align:right;">Schema %</th>
-                  <th style="text-align:right;">VRAM</th>
-                  <th style="text-align:center;">Status</th>
+                  <th>Blocks</th>
+                  <th>Cosine sim.</th>
+                  <th class="c">Decision</th>
                 </tr>
               </thead>
               <tbody>
-                <tr style="background:rgba(79,142,247,.05);">
-                  <td><strong style="color:var(--text);">Gemma-4-E2B (Optimized)</strong></td>
-                  <td>llama.cpp · Reasoning=0 · GBNF</td>
-                  <td class="num" style="text-align:right;color:var(--green);font-weight:600;">6.28 s</td>
-                  <td class="num" style="text-align:right;">83 tok/s</td>
-                  <td class="num" style="text-align:right;color:var(--green);">100.0%</td>
-                  <td class="num" style="text-align:right;">3.2 GB</td>
-                  <td style="text-align:center;"><span class="badge badge-green">Production</span></td>
+                <tr>
+                  <td>0–5, visual grounding</td>
+                  <td class="num">0.76</td>
+                  <td class="c"><span class="tag warn">Keep</span></td>
                 </tr>
                 <tr>
-                  <td style="color:var(--text2);">Gemma-4-E2B (Baseline)</td>
-                  <td>llama.cpp · Default Reasoning</td>
-                  <td class="num" style="text-align:right;">27.12 s</td>
-                  <td class="num" style="text-align:right;">76 tok/s</td>
-                  <td class="num" style="text-align:right;color:var(--green);">100.0%</td>
-                  <td class="num" style="text-align:right;">2.7 GB</td>
-                  <td style="text-align:center;"><span class="badge badge-amber">Baseline</span></td>
+                  <td>14–15, peak redundancy</td>
+                  <td class="num">0.895</td>
+                  <td class="c"><span class="tag info">Prunable</span></td>
                 </tr>
                 <tr>
-                  <td style="color:var(--text2);">UI-TARS-7B-DPO</td>
-                  <td>vLLM / llama.cpp</td>
-                  <td class="num" style="text-align:right;">36.55 s</td>
-                  <td class="num" style="text-align:right;">38 tok/s</td>
-                  <td class="num" style="text-align:right;color:var(--amber);">75.0%</td>
-                  <td class="num" style="text-align:right;">5.7 GB</td>
-                  <td style="text-align:center;"><span class="badge badge-red">Octal Fail</span></td>
-                </tr>
-                <tr>
-                  <td style="color:var(--text2);">Qwen2.5-VL-3B-Instruct</td>
-                  <td>llama.cpp</td>
-                  <td class="num" style="text-align:right;">—</td>
-                  <td class="num" style="text-align:right;">—</td>
-                  <td class="num" style="text-align:right;color:var(--red);">0.0%</td>
-                  <td class="num" style="text-align:right;">3.1 GB</td>
-                  <td style="text-align:center;"><span class="badge badge-red">GBNF Crash</span></td>
+                  <td>30–34, token head</td>
+                  <td class="num">0.78</td>
+                  <td class="c"><span class="tag warn">Keep</span></td>
                 </tr>
               </tbody>
             </table>
+            <div class="note">Gemma-4 PLE embedding tensors are left intact to avoid quantized sliding-window KV
+              misalignment during layer removal. Blocks 14–15 angular distance: 0.147.</div>
           </div>
         </div>
 
-        <!-- Per-sample latency + Token Budget + Layer Redundancy -->
-        <div class="three-col">
-
-          <!-- Per-sample latency bars -->
-          <div class="card">
-            <div class="card-head"><span class="card-head-title">Per-Sample Warm Latency</span></div>
-            <div class="bar-chart-rows">
-              <div class="bar-row"><span class="bar-row-label">Sample 10_6</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><span class="bar-val">6.28 s</span></div>
-              <div class="bar-row"><span class="bar-row-label">Sample CBSE_7</span><div class="bar-track"><div class="bar-fill" style="width:90%"></div></div><span class="bar-val">5.65 s</span></div>
-              <div class="bar-row"><span class="bar-row-label">Sample ICSE_2</span><div class="bar-track"><div class="bar-fill" style="width:97%"></div></div><span class="bar-val">6.09 s</span></div>
-              <div class="bar-row"><span class="bar-row-label">Sample STATE_A</span><div class="bar-track"><div class="bar-fill" style="width:83%"></div></div><span class="bar-val">5.21 s</span></div>
-              <div class="bar-row"><span class="bar-row-label">Sample STATE_B</span><div class="bar-track"><div class="bar-fill" style="width:89%"></div></div><span class="bar-val">5.59 s</span></div>
-              <div class="bar-row"><span class="bar-row-label">Sample ISC_11</span><div class="bar-track"><div class="bar-fill" style="width:92%"></div></div><span class="bar-val">5.78 s</span></div>
-              <div class="bar-row"><span class="bar-row-label">Sample MP_5</span><div class="bar-track"><div class="bar-fill" style="width:86%"></div></div><span class="bar-val">5.40 s</span></div>
-              <div class="bar-row"><span class="bar-row-label">Sample UP_3</span><div class="bar-track"><div class="bar-fill" style="width:88%"></div></div><span class="bar-val">5.52 s</span></div>
-            </div>
-          </div>
-
-          <!-- Visual Token Budget -->
-          <div class="card">
-            <div class="card-head"><span class="card-head-title">Visual Token Budgeting</span></div>
-            <div class="token-rows">
-              <div class="token-row">
-                <div class="token-row-head">
-                  <span>Lanczos 1200 px (DOC-OC v6)</span>
-                  <span style="color:var(--green);">768 tokens  −43%</span>
-                </div>
-                <div class="token-bar-track">
-                  <div class="token-bar-fill" style="width:57%;background:var(--green);"></div>
-                </div>
-              </div>
-              <div class="token-row">
-                <div class="token-row-head">
-                  <span>Unscaled 4 K Scan</span>
-                  <span style="color:var(--text3);">1344 tokens</span>
-                </div>
-                <div class="token-bar-track">
-                  <div class="token-bar-fill" style="width:100%;background:var(--text3);"></div>
-                </div>
-              </div>
-              <div style="font-size:10px;color:var(--text3);line-height:1.6;margin-top:4px;">
-                Lanczos bicubic downscaling to 1200 px long-edge before VLM encoding reduces visual tokens by 43% while preserving OCR-level text clarity.
-              </div>
-              <div style="margin-top:8px;">
-                <div class="section-label" style="margin-bottom:6px;">Preprocessing Breakdown</div>
-                <div class="bar-chart-rows" style="border:1px solid var(--border);border-radius:var(--r-sm);">
-                  <div class="bar-row" style="padding:6px 12px;"><span class="bar-row-label">Decode + Resize</span><div class="bar-track"><div class="bar-fill green" style="width:55%"></div></div><span class="bar-val">0.044 s</span></div>
-                  <div class="bar-row" style="padding:6px 12px;"><span class="bar-row-label">Encode to b64</span><div class="bar-track"><div class="bar-fill green" style="width:45%"></div></div><span class="bar-val">0.036 s</span></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Layer Redundancy -->
-          <div class="card">
-            <div class="card-head"><span class="card-head-title">ShortGPT Layer Redundancy</span><span class="badge badge-purple">Blocks 0–34</span></div>
-            <div class="layer-blocks">
-              <div class="layer-item">
-                <div class="layer-info">
-                  <div class="layer-name">Block 0–5 · Visual Grounding</div>
-                  <div class="layer-note">Cosine Sim: 0.76 — High Impact, retained</div>
-                </div>
-                <div class="layer-badge"><span class="badge badge-amber">Retained</span></div>
-              </div>
-              <div class="layer-item">
-                <div class="layer-info">
-                  <div class="layer-name">Block 14–15 · Peak Redundancy</div>
-                  <div class="layer-note">Cosine Sim: 0.895 · Angular Dist: 0.147</div>
-                </div>
-                <div class="layer-badge"><span class="badge badge-blue">Prunable</span></div>
-              </div>
-              <div class="layer-item">
-                <div class="layer-info">
-                  <div class="layer-name">Block 30–34 · Token Head</div>
-                  <div class="layer-note">Cosine Sim: 0.78 — High Impact, retained</div>
-                </div>
-                <div class="layer-badge"><span class="badge badge-amber">Retained</span></div>
-              </div>
-              <div style="margin-top:6px;padding:10px;background:var(--surface2);border-radius:var(--r-sm);border:1px solid var(--border);">
-                <div style="font-size:10px;color:var(--text3);line-height:1.7;">
-                  <strong style="color:var(--text2);">Architecture Note:</strong> Gemma-4 PLE unified embedding tensors preserved intact to prevent quantized sliding-window KV misalignment during layer surgery.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footnote -->
-        <div class="bench-footnote">
-          <strong>Hardware:</strong> NVIDIA RTX 4050 6 GB (Laptop) · CUDA 12.x · FlashAttention-2 ·
-          <strong>Quantization:</strong> Q4_K_M (Gemma-4-E2B) ·
-          <strong>Constraint Decoding:</strong> C++ GBNF via llama.cpp grammar engine ·
-          <strong>Benchmark Date:</strong> October 2026 ·
-          All latencies are <em>warm</em> (model already loaded) unless noted. Cold start includes model-to-VRAM load (~1.83 s).
-        </div>
-
+        <p class="foot">Hardware: RTX 4050 6 GB laptop, CUDA 12.x, FlashAttention-2. Quantization: Q4_K_M. Constrained
+          decoding: C++ GBNF via the llama.cpp grammar engine. Benchmarked October 2026. Latencies are warm (model
+          loaded) unless noted; cold start includes about 1.83 s of model-to-VRAM load.</p>
       </div>
     </section>
-
   </main>
 
   <script>
     const API_URL = "http://localhost:8000/process";
-    let extractedPayload = null;
-    let timerRef = null;
+    let extractedPayload = null, timerRef = null;
+    const $ = id => document.getElementById(id);
 
-    /* ─── Tab switching ─── */
     function switchView(v) {
-      ['playground','benchmark'].forEach(n => {
-        document.getElementById('view-' + n).classList.toggle('active', n === v);
-        document.getElementById('tab-' + n).classList.toggle('active', n === v);
+      ['playground', 'benchmark'].forEach(n => {
+        $('view-' + n).classList.toggle('active', n === v);
+        $('tab-' + n).classList.toggle('active', n === v);
       });
     }
 
-    /* ─── File handling ─── */
-    const fileInput  = document.getElementById('file-input');
-    const dropzone   = document.getElementById('dropzone');
-    const vpPlaceholder = document.getElementById('viewport-placeholder');
-    const vpImg      = document.getElementById('viewport-img');
-    const vpFrame    = document.getElementById('viewport-frame');
-    const loaderOverlay = document.getElementById('loader-overlay');
-    const loaderTimer   = document.getElementById('loader-timer');
+    const fileInput = $('file-input'), dropzone = $('dropzone'), vpPlaceholder = $('viewport-placeholder'),
+      vpImg = $('viewport-img'), vpFrame = $('viewport-frame'), loaderOverlay = $('loader-overlay'), loaderTimer = $('loader-timer');
 
-    ['dragenter','dragover'].forEach(ev =>
-      dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('drag-active'); }));
-    ['dragleave','drop'].forEach(ev =>
-      dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('drag-active'); }));
-    dropzone.addEventListener('drop', e => {
-      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
-    });
-    fileInput.addEventListener('change', e => {
-      if (e.target.files[0]) handleFile(e.target.files[0]);
-    });
+    ['dragenter', 'dragover'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.add('drag-active') }));
+    ['dragleave', 'drop'].forEach(ev => dropzone.addEventListener(ev, e => { e.preventDefault(); dropzone.classList.remove('drag-active') }));
+    dropzone.addEventListener('drop', e => { if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]) });
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]) });
 
     function handleFile(file) {
       const url = URL.createObjectURL(file);
       vpPlaceholder.style.display = 'none';
       const isPDF = file.type === 'application/pdf' || file.name.endsWith('.pdf');
-      vpImg.style.display   = isPDF ? 'none' : 'block';
+      vpImg.style.display = isPDF ? 'none' : 'block';
       vpFrame.style.display = isPDF ? 'block' : 'none';
       if (isPDF) vpFrame.src = url; else vpImg.src = url;
       uploadAndExtract(file);
+    }
+
+    function safeNum(val, dec = 2) {
+      if (val === null || val === undefined || val === '') return null;
+      if (typeof val === 'number') return isNaN(val) ? null : val.toFixed(dec);
+      const cleaned = String(val).replace(/[^0-9.-]/g, '');
+      const parsed = parseFloat(cleaned);
+      return isNaN(parsed) ? String(val) : parsed.toFixed(dec);
     }
 
     async function uploadAndExtract(file) {
@@ -1160,120 +1118,107 @@
       loaderOverlay.style.display = 'flex';
       clearInterval(timerRef);
       timerRef = setInterval(() => {
-        loaderTimer.textContent = `Executing GBNF decoding: ${((performance.now()-t0)/1000).toFixed(1)}s`;
+        loaderTimer.textContent = `Extracting: ${((performance.now() - t0) / 1000).toFixed(1)}s`;
       }, 100);
 
+      let payload;
       try {
         const resp = await fetch(API_URL, { method: 'POST', body: fd });
-        if (!resp.ok) { const e = await resp.json().catch(()=>({detail:resp.statusText})); throw new Error(e.detail||resp.status); }
-        renderResults(await resp.json());
-      } catch(e) {
-        alert('Inference Error: ' + e.message + '\n\nEnsure backend is running: python app.py');
+        if (!resp.ok) {
+          const e = await resp.json().catch(() => ({ detail: resp.statusText }));
+          throw new Error(e.detail || resp.status);
+        }
+        payload = await resp.json();
+      } catch (e) {
+        alert('Server Error: ' + e.message + '\n\nCheck that the backend is running (python app.py).');
+        clearInterval(timerRef);
+        loaderOverlay.style.display = 'none';
+        return;
+      }
+
+      try {
+        renderResults(payload);
+      } catch (e) {
+        console.error('Rendering error:', e);
+        if (payload && payload.data) {
+          $('results-empty').style.display = 'none';
+          $('results-stream').style.display = 'flex';
+          $('raw-json').textContent = JSON.stringify(payload.data, null, 2);
+        }
+        alert('UI Rendering Error: ' + e.message);
       } finally {
         clearInterval(timerRef);
         loaderOverlay.style.display = 'none';
       }
     }
 
-    /* ─── Render results ─── */
     function renderResults(res) {
       extractedPayload = res.data;
-      const d = res.data;
-      const t = res.timing;
+      const d = res.data || {}, t = res.timing || {};
+      $('results-empty').style.display = 'none';
+      $('results-stream').style.display = 'flex';
+      $('btn-copy').style.display = 'inline-block';
 
-      document.getElementById('results-empty').style.display = 'none';
-      document.getElementById('results-stream').style.display = 'flex';
-      document.getElementById('btn-copy').style.display = 'inline-flex';
+      const prep = Number(t.preprocess) || 0.08;
+      const infer = Number(t.extract) || 6.21;
+      const val = Number(t.validate) || 0.02;
+      const total = prep + infer + val;
 
-      const prep  = t.preprocess  || 0.08;
-      const infer = t.extract      || 6.21;
-      const val   = t.validate     || 0.02;
-      const total = (prep + infer + val).toFixed(2);
-
-      // KPIs
-      document.getElementById('kpi-latency').textContent = infer.toFixed(2) + 's';
+      $('kpi-latency').textContent = (safeNum(infer, 2) || '0.00') + ' s';
       const pct = d.result?.percentage;
-      document.getElementById('kpi-marks').textContent = d.result?.total_obtained ?? '—';
-      document.getElementById('kpi-pct').textContent   = pct ? pct.toFixed(2) + '%' : '—';
-      const status = d.result?.status ?? '—';
-      const statusEl = document.getElementById('kpi-status');
-      statusEl.textContent = status;
-      statusEl.style.color = status === 'PASS' ? 'var(--green)' : 'var(--red)';
+      const pctFormatted = safeNum(pct, 2);
+      $('kpi-marks').textContent = d.result?.total_obtained ?? '–';
+      $('kpi-pct').textContent = pctFormatted ? pctFormatted + '%' : '–';
+      const status = d.result?.status ?? '–', st = $('kpi-status');
+      st.textContent = status;
+      st.className = 'cell-val ' + (status === 'PASS' ? 'ok' : 'bad');
 
-      // Waterfall
-      document.getElementById('waterfall-total').textContent = 'Total: ' + total + 's';
-      document.getElementById('timing-prep').textContent  = 'Prep: ' + prep.toFixed(3) + 's';
-      document.getElementById('timing-infer').textContent = 'VLM: '  + infer.toFixed(2) + 's';
-      document.getElementById('timing-val').textContent   = 'Validate: ' + val.toFixed(3) + 's';
-      const prepPct  = Math.max(2, (prep  / total) * 100);
-      const valPct   = Math.max(1, (val   / total) * 100);
-      const inferPct = 100 - prepPct - valPct;
-      document.getElementById('seg-prep').style.width  = prepPct  + '%';
-      document.getElementById('seg-infer').style.width = inferPct + '%';
-      document.getElementById('seg-val').style.width   = valPct   + '%';
+      $('waterfall-total').textContent = 'Total ' + (safeNum(total, 2) || '0.00') + ' s';
+      $('timing-prep').textContent = 'Preprocess ' + (safeNum(prep, 3) || '0.000') + ' s';
+      $('timing-infer').textContent = 'VLM ' + (safeNum(infer, 2) || '0.00') + ' s';
+      $('timing-val').textContent = 'Validate ' + (safeNum(val, 3) || '0.000') + ' s';
+      const pp = Math.max(2, (prep / total) * 100);
+      const vp = Math.max(1, (val / total) * 100);
+      $('seg-prep').style.width = pp + '%';
+      $('seg-val').style.width = vp + '%';
+      $('seg-infer').style.width = (100 - pp - vp) + '%';
 
-      // Student meta
-      document.getElementById('info-board').textContent  = d.board  || 'Academic Board Details';
-      document.getElementById('info-name').textContent   = d.student_info?.name        || '—';
-      document.getElementById('info-roll').textContent   = d.student_info?.roll_no     || '—';
-      document.getElementById('info-father').textContent = d.student_info?.father_name || '—';
-      document.getElementById('info-mother').textContent = d.student_info?.mother_name || '—';
-      document.getElementById('info-school').textContent = d.student_info?.school_name || '—';
+      const si = d.student_info || {};
+      $('info-board').textContent = d.board || 'Board';
+      $('info-name').textContent = si.name || '–';
+      $('info-roll').textContent = si.roll_no || '–';
+      $('info-father').textContent = si.father_name || '–';
+      $('info-mother').textContent = si.mother_name || '–';
+      $('info-school').textContent = si.school_name || '–';
 
-      // Subjects
-      const tbody = document.getElementById('subjects-tbody');
+      const tbody = $('subjects-tbody');
       tbody.innerHTML = '';
       const subjects = d.subjects || [];
-      document.getElementById('subject-count').textContent = subjects.length + ' Subjects';
+      $('subject-count').textContent = subjects.length + (subjects.length === 1 ? ' subject' : ' subjects');
       subjects.forEach(s => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="color:var(--text);font-weight:600;">${esc(s.name)}</td>
-          <td class="num" style="text-align:right;">${s.theory    ?? '—'}</td>
-          <td class="num" style="text-align:right;">${s.practical ?? '—'}</td>
-          <td class="num" style="text-align:right;color:var(--blue);font-weight:600;">${s.total     ?? '—'}</td>
-          <td class="num" style="text-align:right;color:var(--text3);">${s.max_marks ?? '—'}</td>
-          <td style="text-align:center;"><span class="badge badge-blue">${s.grade || '—'}</span></td>
-        `;
+        tr.innerHTML = `<td><strong>${esc(s.name)}</strong></td>
+      <td class="r num">${s.theory ?? '–'}</td><td class="r num">${s.practical ?? '–'}</td>
+      <td class="r num"><strong>${s.total ?? '–'}</strong></td><td class="r num">${s.max_marks ?? '–'}</td>
+      <td class="c"><span class="tag">${esc(s.grade) || '–'}</span></td>`;
         tbody.appendChild(tr);
       });
-
-      document.getElementById('raw-json').textContent = JSON.stringify(d, null, 2);
+      $('raw-json').textContent = JSON.stringify(d, null, 2);
     }
 
-    /* ─── Load real sample & run live inference ─── */
-    async function loadSample() {
-      vpPlaceholder.style.display = 'none';
-      vpFrame.style.display = 'none';
-      vpImg.style.display   = 'block';
-      vpImg.src = '/dataset/10_6.jpg';
-
-      try {
-        const resp = await fetch('/dataset/10_6.jpg');
-        if (!resp.ok) throw new Error('Sample file /dataset/10_6.jpg not found on server');
-        const blob = await resp.blob();
-        const file = new File([blob], '10_6.jpg', { type: 'image/jpeg' });
-        // Run real live extraction on GPU
-        await uploadAndExtract(file);
-      } catch (err) {
-        alert('Failed to load sample: ' + err.message);
-      }
-    }
-
-    /* ─── Copy JSON ─── */
     function copyJson() {
       if (!extractedPayload) return;
       navigator.clipboard.writeText(JSON.stringify(extractedPayload, null, 2));
-      const btn = document.getElementById('btn-copy');
-      btn.textContent = '✓ Copied';
-      setTimeout(() => { btn.textContent = 'Copy JSON'; }, 2000);
+      const b = $('btn-copy');
+      b.textContent = 'Copied';
+      setTimeout(() => { b.textContent = 'Copy JSON'; }, 2000);
     }
 
-    /* ─── Escape helper ─── */
     function esc(s) {
       if (!s) return '';
-      return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+      return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
   </script>
 </body>
+
 </html>

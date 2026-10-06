@@ -105,6 +105,46 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
     return warnings
 
 
+def reconcile_aggregate_results(marksheet: Marksheet) -> list[str]:
+    """
+    If total_obtained, maximum_marks, or percentage are missing or partial,
+    reconcile them automatically from the validated subject list.
+    """
+    warnings = []
+    # Filter valid academic subjects
+    academic_subjs = [
+        s for s in marksheet.subjects
+        if s.total is not None and s.total > 0
+        and "INTERNAL ASSESSMENT" not in s.name.upper()
+        and "SUPW" not in s.name.upper()
+    ]
+
+    if not academic_subjs:
+        return warnings
+
+    sum_obtained = sum(s.total for s in academic_subjs)
+    sum_max = sum(s.max_marks or 100.0 for s in academic_subjs)
+
+    # 1. Total obtained reconciliation
+    curr_total = marksheet.result.total_obtained
+    if curr_total is None or (curr_total < sum_obtained * 0.4 and len(academic_subjs) >= 3):
+        marksheet.result.total_obtained = sum_obtained
+        warnings.append(
+            f"Auto-reconciled grand total obtained to {sum_obtained} from {len(academic_subjs)} academic subjects"
+        )
+
+    # 2. Maximum marks reconciliation
+    if marksheet.result.maximum_marks is None or marksheet.result.maximum_marks < marksheet.result.total_obtained:
+        marksheet.result.maximum_marks = sum_max
+
+    # 3. Percentage reconciliation
+    if not marksheet.result.percentage and marksheet.result.maximum_marks:
+        pct = round((marksheet.result.total_obtained / marksheet.result.maximum_marks) * 100, 2)
+        marksheet.result.percentage = f"{pct}%"
+
+    return warnings
+
+
 # ── Main Validation ───────────────────────────────────────────────────────────
 
 def validate(raw_data: dict) -> tuple[Marksheet, list[str]]:
@@ -122,5 +162,9 @@ def validate(raw_data: dict) -> tuple[Marksheet, list[str]]:
 
     # Run arithmetic sanity checks
     warnings = check_arithmetic(marksheet)
+
+    # Reconcile grand total & percentage if missing or partial
+    agg_warnings = reconcile_aggregate_results(marksheet)
+    warnings.extend(agg_warnings)
 
     return marksheet, warnings
