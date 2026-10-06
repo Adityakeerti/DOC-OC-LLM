@@ -1,91 +1,68 @@
-# 🚀 LinkedIn Post: The Evolution of DOC-OC (From Brittle Cascades to Local VLM Engine)
+I rebuilt DOC-OC around a local Vision-Language Model.
 
-*Below are two LinkedIn post options engineered for high technical engagement. Option 1 is concise, punchy, and formatted specifically for the LinkedIn algorithm. Option 2 is a deep-dive systems breakdown.*
+Earlier versions of the project relied on a traditional document-extraction pipeline:
 
----
+→ OpenCV preprocessing and cropping
+→ YOLO-based document/region detection
+→ Table extraction
+→ OCR
+→ Regex and rule-based post-processing
 
-## 📌 Option 1: High-Signal Technical Story (Recommended)
+It worked, but the pipeline became increasingly brittle as document layouts changed across boards and document formats.
 
-```text
-Stop building 10-stage OCR cascades. 
+For DOC-OC V2, I moved the core extraction step to a local VLM running entirely on a consumer GPU.
 
-For the past versions of DOC-OC (v1–v5), our document extraction architecture looked like what most teams still deploy today:
-→ Canny edge detection & OpenCV contour cropping
-→ YOLO models for board logo detection
-→ TableTransformers for cell slicing
-→ Paid Cloud OCR APIs ($0.02 - $0.05 / page)
-→ Hundreds of brittle regex rules that broke every time CBSE or UP Board changed a border color or layout.
+The goal was simple: reduce latency while making the extraction pipeline more robust across different document layouts.
 
-It was slow, expensive, and broke on edge cases.
+### What I worked on
 
-For DOC-OC v6, I completely rebuilt the engine from scratch around local Vision-Language Models (VLMs) running 100% offline on a consumer laptop GPU (RTX 4050, 6GB VRAM). 
+**1. Inference optimization**
 
-Zero cloud APIs. Zero cost per page. Zero regex.
+The initial VLM implementation was taking around 27–30 seconds per document.
 
-Here is the real ML systems engineering behind making a local VLM production-ready:
+Profiling the inference path revealed that the model was spending the vast majority of its time generating internal reasoning traces (>1,500 conversational tokens) before emitting structured data. For an extraction task, this is pure latency overhead.
 
-1. Latency Drop: 27.12s ➔ 6.28s (4.32x Speedup)
-Modern reasoning models (like Gemma-4) default to generating internal thought chains (~1,500 conversational tokens) before emitting structured data. By configuring the inference runtime with reasoning suppressed (`--reasoning off`, `--reasoning-budget 0`), extraction time dropped from 27 seconds down to 6.28s (single docs down to 4.24s) at 83 tok/s.
+By suppressing reasoning tokens (`--reasoning-budget 0` in llama.cpp), offloading all transformer layers to the GPU, and enabling FlashAttention, warm inference dropped down to ~6.3s per page on an RTX 4050 6GB.
 
-2. C++ GBNF Constrained Decoding (Eliminating Hallucinations)
-Instead of asking the LLM to "please output valid JSON" and praying it doesn't emit markdown wrappers or octal leading zeros, we compile our Pydantic schema into a strict GBNF grammar passed directly to llama.cpp's C++ sampler. The sampler masks illegal token logits during generation. Syntax invalidity is mathematically impossible.
+**2. Constrained structured generation (C++ GBNF)**
 
-3. Visual Patch Optimization (43% Fewer Tokens)
-Document micro-text needs sharpness, not bloated resolutions. Using proportional 1200px Lanczos resampling, we preserved high-frequency character edges while slashing visual patch tokens by 43%, dramatically accelerating Time-to-First-Token (TTFT).
+A VLM can visually parse a document correctly and still produce an invalid JSON response—emitting markdown wrappers, trailing commas, or numbers with leading zeros (e.g. `077`) that break standard JSON parsers as illegal octals.
 
-4. ShortGPT Layer Redundancy Profiling
-We ran layer-to-layer cosine similarity and angular distance profiling across all 35 transformer blocks to investigate weight pruning. We discovered peak redundancy at Blocks 14 & 15 (Cosine Sim 0.8953), but also uncovered architectural guardrails: Gemma-4's Per-Layer Embeddings (PLE) span across all layers in unified matrices. Understanding the underlying model architecture saved us from unstable weight slicing when runtime optimizations were already exceeding our latency budget.
+Instead of relying on prompt engineering and hoping the model complies, I integrated formal GBNF (GGML BNF) grammar constraints directly into llama.cpp.
 
-5. Self-Healing Arithmetic Reconciliation
-LLMs are vision engines, not arithmetic calculators. A lightweight post-processor cross-checks component marks (Theory + Practical == Total) and auto-reconciles table misalignments with zero human intervention.
+During autoregressive generation, the sampler evaluates the grammar's state machine and applies logit masking at each decoding step. Any token that would violate valid JSON syntax or our defined schema has its probability forced to zero before sampling. This moves structural reliability from prompt engineering directly into the C++ decoding loop.
 
-📊 The Results on Authentic Multi-Board Marksheets:
-• Latency: 6.28s average on consumer edge hardware
-• Schema Adherence: 100.0% (GBNF locked)
-• Candidate Name & Marks Precision: 100.0%
-• Cloud API bill: $0.00
+**3. Visual token optimization**
 
-Building with AI isn't just about calling API endpoints — it's about systems engineering, constrained decoding, and memory-aware runtime optimization.
+Image resolution dictates the visual token count passed into the multimodal projector, which directly impacts Time-to-First-Token (TTFT) and memory bandwidth.
 
-Open-source code, benchmarks, and technical logs:
-👉 https://github.com/Adityakeerti/DOC-OC-LLM
+Passing full-resolution scans generated an excessive number of visual patch tokens without yielding additional OCR accuracy.
 
-#MachineLearning #LLM #VLM #ComputerVision #EdgeAI #SystemsEngineering #OpenSource #Python #CUDA
-```
+I benchmarked multiple resolutions and applied proportional Lanczos downsampling capped at 1200px. This preserved high-frequency character edges and micro-text on watermarked marksheets while reducing visual tokens by ~43%, significantly cutting prefill time without information loss.
 
----
+**4. Model architecture & ShortGPT redundancy analysis**
 
-## 📌 Option 2: Deep Systems / Low-Level Breakdown
+To investigate whether model compression could reduce inference cost further, I implemented ShortGPT's Block Influence (BI) metric, measuring layer-to-layer cosine similarity and angular distance across all 35 transformer blocks.
 
-```text
-How we achieved 6.28s edge VLM inference with 100% schema accuracy on a 6GB laptop GPU:
+The analysis revealed significant representation redundancy in the middle layers, peaking at blocks 14 and 15 (cosine similarity 0.895, angular distance 0.147).
 
-Most document AI pipelines in production are fragile pipelines of OpenCV heuristics, paid cloud OCR, and regex. 
+However, inspecting the tensor layout before pruning revealed critical architectural constraints: Gemma uses Per-Layer Embeddings (PLE) across layers in unified matrices (`per_layer_token_embd.weight`) alongside shared sliding-window KV attention heads. Pruning middle blocks risks breaking tensor indexing and KV-cache alignment in quantized formats.
 
-In DOC-OC v6, we replaced the legacy cascade with an end-to-end multimodal pipeline powered by Gemma-4-E2B. But deploying a VLM locally comes with steep systems challenges: VRAM limits, high latency, and output hallucination.
+Given that runtime optimizations had already brought latency down to ~6.3s, keeping the base architecture intact avoided destabilizing the quantized weights for marginal gain.
 
-Here is how we solved them at the engine level:
+### Current result
 
-🔹 Constrained Decoding via GBNF Grammars
-Prompt engineering alone cannot guarantee JSON compliance. By passing our Pydantic schema as a Context-Free Grammar (GBNF) directly to llama.cpp's C++ decoding loop, we enforce logit masking at each sampling step. The model literally cannot sample an invalid syntax token or octal character.
+~27–30s → ~6.3s warm inference
+RTX 4050 6GB (~3.2 GB VRAM consumed)
+Fully local / offline inference
+100% schema validity via GBNF constrained decoding
+No per-page cloud OCR cost
 
-🔹 Reasoning Budget Suppression
-Gemma 4 was initially clocking 27+ seconds per document. Profiling revealed that >70% of wall-clock time was spent generating ~1,500 internal reasoning tokens before producing the JSON payload. By disabling reasoning traces at the server runtime, we achieved an immediate 4.3x speedup down to 6.28s.
+What I've found most interesting is that getting a VLM to work is only the beginning.
 
-🔹 Spatial Visual Grounding
-Multi-board Indian marksheets have complex 2D column layouts (e.g. CBSE's SUB. CODE vs THEORY vs TOTAL, and bilingual Hindi/English headers). Rather than brittle OCR bounding boxes, we grounded attention coordinates directly in the multimodal prompt, resolving parent vs. candidate name confusions.
+A large part of the engineering is in profiling the inference path, controlling decoding at the logit level, managing visual token budgets, and understanding what the model and runtime are actually doing underneath.
 
-🔹 ShortGPT Profiling & PLE Architecture
-We profiled block redundancy using ShortGPT cosine similarity across all 35 transformer blocks. Peak redundancy occurred at layers 14 & 15 (Angular Dist 0.1470). However, deep tensor analysis revealed Gemma-4's Per-Layer Embeddings (PLE) unified tensor design, illustrating the exact trade-offs between pruning vs. runtime optimization on quantized weights.
+Code, benchmarks, and engineering logs:
+https://github.com/Adityakeerti/DOC-OC-LLM
 
-Architecture:
-• Engine: llama.cpp (100% CUDA offload, FlashAttention enabled)
-• Service: FastAPI + Split-Screen Verification UI
-• Hardware: NVIDIA RTX 4050 Laptop GPU (3.2 GB / 6 GB VRAM)
-• Privacy: 100% offline, zero cloud calls
-
-All source code, technical interview logs, and benchmark logs are public on GitHub:
-👉 https://github.com/Adityakeerti/DOC-OC-LLM
-
-#DeepLearning #MLOps #LLMOps #CUDA #llama_cpp #VisionLanguageModels #ArtificialIntelligence
-```
+#MachineLearning #VLM #LLM #ComputerVision #EdgeAI #CUDA #OpenSource #AIEngineering
