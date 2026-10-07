@@ -83,27 +83,47 @@ CRITICAL EXTRACTION RULES:
 1. CANDIDATE & PARENT DETAILS:
    - Top section reading order:
      * Line 1: 'This is to certify that' or 'according to the Board's record' / 'परिषद् के अभिलेखानुसार' followed by CANDIDATE NAME. Extract the complete student name printed on this line (e.g. KUNWAR KAPIL SINGH KARKI, AMAN GULERIYA, BHUMI, ROHIT PATHAK).
-     * Line 2: 'Son/Daughter of Mrs.' / 'आत्मज/आत्मजा श्रीमती' or 'Mother's Name' / 'माता का नाम' followed by MOTHER'S NAME.
-     * Line 3: 'and Mr.' / 'एवं श्री' or 'Father's Name' / 'Father's / Guardian's Name' / 'पिता का नाम' followed by FATHER'S NAME.
+     * Line 2: 'Son/Daughter of Mrs.' / 'आत्मज/आत्मजा श्रीमती' or 'Mother's Name' / 'माता का नाम' followed by MOTHER'S NAME (e.g. GEETA PATHAK, SMT MAMTA RANI, KARABI RANA).
+     * Line 3: 'and Mr.' / 'एवं श्री' or 'Father's Name' / 'Father's / Guardian's Name' / 'पिता का नाम' followed by FATHER'S NAME (e.g. NAVEEN CHANDRA PATHAK, BALWANT SINGH RANA, RAJENDRA SINGH).
+   - WARNING: Mother's Name and Father's Name are TWO DIFFERENT PEOPLE. Mother is Mrs./श्रीमती and Father is Mr./श्री. NEVER set Mother's name equal to Father's name!
    - WARNING: NEVER confuse Candidate Name with Father's Name! A candidate cannot have the identical name as their father.
-   - Roll Number: Exact full digits under "Roll No." / "अनुक्रमांक" (preserve all consecutive digits and interior zeros).
-   - Date of Birth (DOB): Format DD-MM-YYYY if present, or null.
+   - Roll Number:
+     * Exact full digits under "Roll No." / "अनुक्रमांक".
+     * CBSE Roll Numbers are ALWAYS exactly 8 digits (e.g. 25109039, 25114139, 25115560, 25107204, 25130945). Count all 8 digits carefully; NEVER drop interior zeros (e.g. extract 25109039, NOT 2510939).
+   - Date of Birth (DOB): Format DD-MM-YYYY if present, or null. Cross-check numeric digits with the date in words printed immediately beside it (e.g. "21ST MAY TWO THOUSAND FOUR" -> "21-05-2004", not 25; "06TH OCTOBER" -> "06-10-2004"). Always verify against the printed words.
    - School / Institution: Full school name and code if visible.
 
-2. SUBJECTS TABLE & MARKS (CBSE, ICSE, STATE BOARDS):
-   - Extract ALL academic subject rows (e.g. HINDI, ENGLISH, MATHEMATICS, SCIENCE, SOCIAL SCIENCE, SANSKRIT, PHYSICS, CHEMISTRY, PAINTING, PHYSICAL EDUCATION, INFORMATION TECHNOLOGY).
-   - NEVER extract co-scholastic / grading-only rows that have NO numeric marks (such as "WORK EXPERIENCE", "HEALTH & PHYSICAL EDUCATION", "GENERAL STUDIES", "SUPW", "INTERNAL ASSESSMENT").
-   - NEVER create subject rows for headers or category labels like "ADDITIONAL SUBJECT", "COMPULSORY", "ELECTIVE", or "RESULT"!
-   - "SUB. CODE": 2-3 digit subject code (e.g. 001, 021, 031, 101, 128, 184). Never use code as marks!
-   - READ EACH SUBJECT ROW FROM LEFT TO RIGHT:
-     * 1st marks column: THEORY marks (सैद्धान्तिक / लिखित).
-     * 2nd marks column: PRACTICAL or INTERNAL ASSESSMENT (IA/PR) marks. If that cell is blank, empty, or a dash '-', output null.
-     * 3rd marks column: TOTAL marks for that subject. Cross-check with 'TOTAL IN WORDS' column in that row to ensure exact match.
-   - WARNING: DO NOT put the grand total into individual subject marks! Every single subject has its own marks (<= 100).
-   - "MAX_MARKS": "100" for each subject.
-   - Output all marks as strings in quotes (e.g. "072", "020", "092", "74").
+2. BOARD AND EXAMINATION IDENTIFICATION:
+   - Look at the crest, watermark, and header:
+     * If "HARYANA" or "BSEH" or "हरियाणा", board is "Board of School Education Haryana".
+     * If "UBSE" or "UTTARAKHAND" or "उत्तराखण्ड", board is "Uttarakhand Board of School Education" (NOT Uttar Pradesh!).
+     * If "UP BOARD" or "UTTAR PRADESH" or "माध्यमिक शिक्षा परिषद्, उत्तर प्रदेश", board is "Board of High School and Intermediate Education Uttar Pradesh".
+     * If "CENTRAL BOARD OF SECONDARY EDUCATION", board is "Central Board of Secondary Education".
+     * If "COUNCIL FOR THE INDIAN SCHOOL CERTIFICATE EXAMINATIONS", board is "Council for the Indian School Certificate Examinations, New Delhi".
 
-3. OVERALL RESULT:
+3. SUBJECTS TABLE & MARKS (CBSE, ICSE, STATE BOARDS):
+   - ICSE (CLASS 10 CISCE):
+     * Extract ONLY the 6 MAIN academic subjects: 'ENGLISH', 'HINDI' (or second language), 'HISTORY, CIVICS & GEOGRAPHY', 'MATHEMATICS', 'SCIENCE', and the elective/6th subject (e.g. 'COMPUTER APPLICATIONS', 'PHYSICAL EDUCATION', 'COMMERCIAL STUDIES').
+     * In Class 10 ICSE, DO NOT extract component papers ('ENGLISH LANGUAGE', 'LITERATURE IN ENGLISH', 'HISTORY & CIVICS', 'GEOGRAPHY', 'PHYSICS', 'CHEMISTRY', 'BIOLOGY') as separate rows.
+     * For ICSE parent subjects, the total marks and grade are printed under 'PERCENTAGE MARKS' column (e.g. '89 EIGHT NINE' -> 89, '86 EIGHT SIX' -> 86, '80 EIGHT ZERO' -> 80).
+   - ISC & SENIOR SECONDARY (CLASS 12 ALL BOARDS):
+     * In Class 12, PHYSICS, CHEMISTRY, BIOLOGY, and MATHEMATICS are INDEPENDENT academic subjects (each out of 100 max marks). DO NOT merge them into Science.
+   - CBSE BOARDS:
+     * Table columns from left to right: [SUB CODE] [SUBJECT NAME] [THEORY] [IA/PR] [TOTAL] [TOTAL IN WORDS] [GRADE].
+     * DO NOT skip the 2nd marks column (IA/PR)! Every CBSE subject has both Theory (e.g. 65, 48, 53) and IA/PR (e.g. 17, 18, 20, 64).
+     * 1st marks column: THEORY marks (सैद्धान्तिक).
+     * 2nd marks column: IA/PR marks (Internal Assessment / Practical). For Computer Applications, IT, or Painting, IA/PR can be up to 70.
+     * 3rd marks column: TOTAL marks for that subject. Cross-check with 'TOTAL IN WORDS'.
+   - STATE BOARDS (Uttarakhand / UP / Haryana):
+     * Follow the 2-column or 3-column layout. If practical/IA is blank or dash '-', output null.
+   - GENERAL RULES:
+     * NEVER extract co-scholastic / grading-only rows with NO numeric marks (such as "WORK EXPERIENCE", "HEALTH & PHYSICAL EDUCATION", "GENERAL STUDIES", "SUPW", "INTERNAL ASSESSMENT").
+     * NEVER create subject rows for headers or category labels like "ADDITIONAL SUBJECT", "COMPULSORY", "ELECTIVE", or "RESULT"!
+     * "SUB. CODE": 2-3 digit subject code (e.g. 001, 041, 086, 184). Never use code as marks!
+     * "MAX_MARKS": "100" for each subject.
+     * Output all marks as strings in quotes (e.g. "072", "020", "092", "74").
+
+4. OVERALL RESULT:
    - Status: "PASS", "PASSED", "FAIL", or "COMPARTMENT".
    - Total Obtained: If a numeric grand total is explicitly printed on the document (e.g. in "RESULT: 428/500" or "TOTAL: 409"), extract that exact number. If NO numeric grand total is printed on the marksheet (e.g. certificates that only state "Result: PASS"), output null! DO NOT invent or guess a grand total.
    - Maximum Marks: If an overall maximum marks is printed (e.g. "500"), extract it; otherwise output null.

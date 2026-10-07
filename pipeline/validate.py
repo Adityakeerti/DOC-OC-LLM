@@ -65,7 +65,7 @@ class StudentInfo(BaseModel):
         if not v or not isinstance(v, str):
             return v
         s = v.strip()
-        s = re.sub(r"^(Mr\.|Mrs\.|Smt\.|Shri|Master|Km\.|Miss)\s+", "", s, flags=re.IGNORECASE).strip()
+        s = re.sub(r"^(Mr\.?|Mrs\.?|Smt\.?|Shri\.?|Master\.?|Km\.?|Miss\.?)\s+", "", s, flags=re.IGNORECASE).strip()
         return s
 
 
@@ -123,6 +123,146 @@ class Marksheet(BaseModel):
     result: Result = Result()
 
 
+# ── ICSE Sub-Paper & Grade Reconciliation ──────────────────────────────────
+
+ICSE_DIGIT_WORDS = {
+    "ZERO": 0, "ONE": 1, "TWO": 2, "THREE": 3, "FOUR": 4,
+    "FIVE": 5, "SIX": 6, "SEVEN": 7, "EIGHT": 8, "NINE": 9
+}
+
+def parse_icse_grade_marks(grade_str: Optional[str]) -> Optional[float]:
+    """Parse ICSE percentage words from grade column (e.g. 'EIGHT SIX' -> 86.0, 'NINE ONE' -> 91.0)."""
+    if not grade_str:
+        return None
+    tokens = [w for w in grade_str.upper().split() if w in ICSE_DIGIT_WORDS]
+    if len(tokens) == 2:
+        return float(ICSE_DIGIT_WORDS[tokens[0]] * 10 + ICSE_DIGIT_WORDS[tokens[1]])
+    return None
+
+def reconcile_icse_subjects(marksheet: Marksheet) -> list[str]:
+    """
+    In ICSE (CISCE) marksheets, parent subjects (ENGLISH; HISTORY, CIVICS & GEOGRAPHY; SCIENCE)
+    are often followed by indented sub-papers (ENGLISH LANGUAGE, LITERATURE IN ENGLISH,
+    HISTORY & CIVICS, GEOGRAPHY, PHYSICS, CHEMISTRY, BIOLOGY).
+    
+    If sub-papers are extracted alongside parent subjects, roll up the sub-paper marks
+    into the parent subjects (using ICSE official averaging rules) and prune the sub-papers.
+    Also grounds parent subject marks to the printed word grade (e.g. 'EIGHT SIX' -> 86.0).
+    """
+    warnings = []
+    board_text = ((marksheet.board or "") + " " + (marksheet.examination or "")).upper()
+    is_class_12 = any(k in board_text for k in [
+        "CLASS - XII", "CLASS-XII", "CLASS XII", "CLASS 12", "CLASS-12",
+        "ISC", "INTERMEDIATE", "SENIOR SECONDARY", "SENIOR SCHOOL", "HSC", "12TH"
+    ])
+
+    # In Class 12 / Intermediate, Physics, Chemistry, and Biology are distinct academic subjects,
+    # NEVER component sub-papers of Science!
+    ICSE_SUB_PAPERS = {
+        "ENGLISH LANGUAGE": "ENGLISH",
+        "LITERATURE IN ENGLISH": "ENGLISH",
+        "HISTORY & CIVICS": "HISTORY, CIVICS & GEOGRAPHY",
+        "GEOGRAPHY": "HISTORY, CIVICS & GEOGRAPHY",
+    }
+    if not is_class_12:
+        ICSE_SUB_PAPERS["PHYSICS"] = "SCIENCE"
+        ICSE_SUB_PAPERS["CHEMISTRY"] = "SCIENCE"
+        ICSE_SUB_PAPERS["BIOLOGY"] = "SCIENCE"
+
+    is_icse = any(k in board_text for k in [
+        "COUNCIL FOR THE INDIAN SCHOOL", "ICSE", "CISCE",
+        "INDIAN CERTIFICATE OF SECONDARY EDUCATION", "INDIAN SCHOOL CERTIFICATE"
+    ])
+
+    subj_names_upper = {s.name.strip().upper(): s for s in marksheet.subjects}
+    found_sub_papers = [name for name in subj_names_upper if name in ICSE_SUB_PAPERS]
+
+    has_parent_overlap = any(
+        ICSE_SUB_PAPERS[sp] in subj_names_upper for sp in found_sub_papers
+    )
+
+    if not (is_icse or (found_sub_papers and has_parent_overlap)):
+        return warnings
+
+    parent_sub_marks: dict[str, list[Subject]] = {}
+    for sp_name in found_sub_papers:
+        parent = ICSE_SUB_PAPERS[sp_name]
+        parent_sub_marks.setdefault(parent, []).append(subj_names_upper[sp_name])
+
+    cleaned_subjects: list[Subject] = []
+    seen_parents = set()
+
+    for s in marksheet.subjects:
+        name_upper = s.name.strip().upper()
+        if name_upper in ICSE_SUB_PAPERS:
+            warnings.append(f"ICSE Layout: Pruned component paper '{s.name}' into parent '{ICSE_SUB_PAPERS[name_upper]}'")
+            continue
+
+        grade_val = parse_icse_grade_marks(s.grade)
+
+        if name_upper in parent_sub_marks:
+            seen_parents.add(name_upper)
+            sub_list = parent_sub_marks[name_upper]
+            # Sanitize sub-totals to prevent unpruned sum overflow
+            sub_totals = []
+            for sub in sub_list:
+                val = sub.total if (sub.total is not None and sub.total <= 100.0) else sub.theory
+                if val is not None and val <= 100.0:
+                    sub_totals.append(val)
+
+            avg_total = float(round(sum(sub_totals) / len(sub_totals))) if sub_totals else None
+
+            # Prioritize official word grade if present, else computed average
+            target_mark = grade_val if grade_val is not None else avg_total
+            if target_mark is not None:
+                old_tot = s.total
+                s.total = target_mark
+                s.theory = target_mark
+                s.practical = None
+                warnings.append(
+                    f"ICSE Layout: Reconciled parent subject '{s.name}' total to {target_mark} "
+                    f"(from {'word grade ' + s.grade if grade_val else 'component papers average ' + str(sub_totals)}, was {old_tot})"
+                )
+        else:
+            # Standalone ICSE subject (HINDI, MATHEMATICS, PHYSICAL EDUCATION, COMPUTER APPLICATIONS)
+            if grade_val is not None and (s.total is None or s.total > 100.0 or abs(s.total - grade_val) > 3):
+                s.total = grade_val
+                s.theory = grade_val
+                s.practical = None
+                warnings.append(f"ICSE Layout: Grounded '{s.name}' total to {grade_val} from word grade '{s.grade}'")
+
+        if s.total is not None and s.total > 100.0:
+            if grade_val is not None:
+                s.total = grade_val
+                s.theory = grade_val
+            elif s.theory is not None and s.theory <= 100.0:
+                s.total = s.theory
+
+        cleaned_subjects.append(s)
+
+    # If a parent subject was missing from the extraction but its sub-papers were extracted:
+    for parent, sub_list in parent_sub_marks.items():
+        if parent not in seen_parents:
+            sub_totals = [sub.total for sub in sub_list if sub.total is not None and sub.total <= 100.0]
+            if sub_totals:
+                avg_total = float(round(sum(sub_totals) / len(sub_totals)))
+                cleaned_subjects.append(Subject(
+                    name=parent,
+                    theory=avg_total,
+                    practical=None,
+                    total=avg_total,
+                    max_marks=100.0,
+                    grade=None
+                ))
+                warnings.append(
+                    f"ICSE Layout: Synthesized parent subject '{parent}' with total {avg_total} "
+                    f"from component papers {sub_totals}"
+                )
+
+    marksheet.subjects = cleaned_subjects
+    return warnings
+
+
 # ── Arithmetic Checks ─────────────────────────────────────────────────────────
 
 def check_arithmetic(marksheet: Marksheet) -> list[str]:
@@ -154,10 +294,18 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
 
     # 2. Arithmetic reconciliation
     for subj in marksheet.subjects:
+        # If total is missing but theory is present and practical is None:
+        if subj.total is None and subj.theory is not None and subj.practical is None:
+            subj.total = subj.theory
+            warnings.append(f"{subj.name}: Auto-set Total to Theory ({subj.theory})")
+        # Conversely, if theory is missing but total is present and practical is None:
+        elif subj.theory is None and subj.total is not None and subj.practical is None:
+            subj.theory = subj.total
+
         # If total is present and theory is present, but practical is missing:
         if subj.total is not None and subj.theory is not None:
             diff = round(subj.total - subj.theory, 2)
-            if subj.practical is None and 0 < diff <= 50:
+            if subj.practical is None and 0 < diff <= 75:
                 subj.practical = diff
                 warnings.append(
                     f"{subj.name}: Auto-reconciled practical/internal assessment to {diff} "
@@ -184,9 +332,9 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
                 subj.practical = None
                 warnings.append(f"{subj.name}: Total exceeded {max_limit}; reset to Theory {subj.theory}")
 
-        # 2d. Self-healing: Practical in a standard 100-mark paper cannot exceed 50
-        # Exception: Valid subjects like Painting (Fine Arts) have Practical=70 + Theory=30 = 100
-        if subj.practical is not None and subj.practical > 50.0 and max_limit <= 100.0:
+        # 2d. Self-healing: Practical in a standard 100-mark paper cannot exceed 75
+        # Exception: Valid subjects like Painting/Music/IT/Computer Applications have Practical up to 70
+        if subj.practical is not None and subj.practical > 75.0 and max_limit <= 100.0:
             if subj.theory is not None and subj.total is not None and abs(subj.theory + subj.practical - subj.total) <= 1:
                 pass  # Valid high-practical subject (e.g. Painting: Theory 27 + Practical 70 = Total 97)
             else:
@@ -196,7 +344,7 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
                     subj.total = candidate_total
                 if subj.theory is not None and subj.theory < subj.total:
                     diff = round(subj.total - subj.theory, 2)
-                    if 0 < diff <= 50:
+                    if 0 < diff <= 75:
                         subj.practical = diff
                 warnings.append(f"{subj.name}: Corrected misaligned practical {candidate_total} into Total {subj.total}")
 
@@ -241,6 +389,13 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
                     f"but total shows {subj.total}"
                 )
 
+    # 3. Detect duplicate parents (Mother == Father slip)
+    if marksheet.student_info.mother_name and marksheet.student_info.father_name:
+        if marksheet.student_info.mother_name.strip().upper() == marksheet.student_info.father_name.strip().upper():
+            warnings.append(
+                f"Candidate parents conflict: Mother and Father have identical name '{marksheet.student_info.mother_name}'."
+            )
+
     return warnings
 
 
@@ -265,7 +420,7 @@ def reconcile_aggregate_results(marksheet: Marksheet) -> list[str]:
 
     # 1. Total obtained reconciliation
     curr_total = marksheet.result.total_obtained
-    if curr_total is None or (curr_total < sum_obtained * 0.4 and len(academic_subjs) >= 3):
+    if curr_total is None or curr_total > sum_max or (curr_total < sum_obtained * 0.4 and len(academic_subjs) >= 3):
         marksheet.result.total_obtained = sum_obtained
         warnings.append(
             f"Auto-reconciled grand total obtained to {sum_obtained} from {len(academic_subjs)} academic subjects"
@@ -304,10 +459,13 @@ def validate(raw_data: dict) -> tuple[Marksheet, list[str]]:
     # Pydantic handles type coercion, missing fields, and structure validation
     marksheet = Marksheet.model_validate(raw_data)
 
-    # Run arithmetic sanity checks
-    warnings = check_arithmetic(marksheet)
+    # Step 1: Reconcile ICSE component sub-papers into aggregate subjects
+    icse_warnings = reconcile_icse_subjects(marksheet)
 
-    # Reconcile grand total & percentage if missing or partial
+    # Step 2: Run arithmetic sanity checks
+    warnings = icse_warnings + check_arithmetic(marksheet)
+
+    # Step 3: Reconcile grand total & percentage if missing or partial
     agg_warnings = reconcile_aggregate_results(marksheet)
     warnings.extend(agg_warnings)
 
