@@ -135,13 +135,19 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
     # 1. Filter out category/header rows that are not subjects
     BOGUS_LABELS = [
         "ADDITIONAL SUBJECT", "ADDITIONAL", "COMPULSORY", "ELECTIVE",
-        "INTERNAL ASSESSMENT", "SUPW", "OVERALL RESULT", "RESULT"
+        "INTERNAL ASSESSMENT", "SUPW", "OVERALL RESULT", "RESULT",
+        "WORK EXPERIENCE", "HEALTH & PHYSICAL EDUCATION", "GENERAL STUDIES",
+        "PHYSICAL & HEALTH EDUCATION", "HEALTH & PHYSICAL", "GENERAL AWARENESS"
     ]
     cleaned_subjects = []
     for s in marksheet.subjects:
         norm_name = s.name.strip().upper()
-        if any(norm_name == b or norm_name.startswith(b + " ") for b in BOGUS_LABELS) and len(norm_name) <= 22:
-            warnings.append(f"Filtered out non-academic category label row: '{s.name}'")
+        if any(norm_name == b or norm_name.startswith(b + " ") for b in BOGUS_LABELS):
+            warnings.append(f"Filtered out non-academic/co-scholastic row: '{s.name}'")
+            continue
+        # Also skip rows with no numeric marks at all (grading-only co-scholastic rows)
+        if s.theory is None and s.practical is None and s.total is None:
+            warnings.append(f"Filtered out grading-only row: '{s.name}'")
             continue
         cleaned_subjects.append(s)
     marksheet.subjects = cleaned_subjects
@@ -179,17 +185,20 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
                 warnings.append(f"{subj.name}: Total exceeded {max_limit}; reset to Theory {subj.theory}")
 
         # 2d. Self-healing: Practical in a standard 100-mark paper cannot exceed 50
-        # If practical > 50, model mistook total or theory for practical
+        # Exception: Valid subjects like Painting (Fine Arts) have Practical=70 + Theory=30 = 100
         if subj.practical is not None and subj.practical > 50.0 and max_limit <= 100.0:
-            candidate_total = subj.practical
-            subj.practical = None
-            if subj.total is None or subj.total > max_limit or abs(subj.total - candidate_total) > 5:
-                subj.total = candidate_total
-            if subj.theory is not None and subj.theory < subj.total:
-                diff = round(subj.total - subj.theory, 2)
-                if 0 < diff <= 50:
-                    subj.practical = diff
-            warnings.append(f"{subj.name}: Corrected misaligned practical {candidate_total} into Total {subj.total}")
+            if subj.theory is not None and subj.total is not None and abs(subj.theory + subj.practical - subj.total) <= 1:
+                pass  # Valid high-practical subject (e.g. Painting: Theory 27 + Practical 70 = Total 97)
+            else:
+                candidate_total = subj.practical
+                subj.practical = None
+                if subj.total is None or subj.total > max_limit or abs(subj.total - candidate_total) > 5:
+                    subj.total = candidate_total
+                if subj.theory is not None and subj.theory < subj.total:
+                    diff = round(subj.total - subj.theory, 2)
+                    if 0 < diff <= 50:
+                        subj.practical = diff
+                warnings.append(f"{subj.name}: Corrected misaligned practical {candidate_total} into Total {subj.total}")
 
         # 2e. Self-healing: Theory + Practical cannot exceed max marks (e.g. 89 + 20 = 109 > 100)
         if subj.theory is not None and subj.practical is not None:
@@ -261,13 +270,19 @@ def reconcile_aggregate_results(marksheet: Marksheet) -> list[str]:
         warnings.append(
             f"Auto-reconciled grand total obtained to {sum_obtained} from {len(academic_subjs)} academic subjects"
         )
+    elif curr_total is not None and abs(curr_total - sum_obtained) <= 5 and sum_obtained > 0:
+        if curr_total != sum_obtained:
+            warnings.append(
+                f"Corrected result grand total from {curr_total} to verified subject sum {sum_obtained}"
+            )
+            marksheet.result.total_obtained = sum_obtained
 
-    # 2. Maximum marks reconciliation
-    if marksheet.result.maximum_marks is None or marksheet.result.maximum_marks < marksheet.result.total_obtained:
+    # 2. Maximum marks reconciliation (cap inflated maximum_marks from co-scholastic rows)
+    if marksheet.result.maximum_marks is None or marksheet.result.maximum_marks > sum_max or marksheet.result.maximum_marks < marksheet.result.total_obtained:
         marksheet.result.maximum_marks = sum_max
 
     # 3. Percentage reconciliation
-    if not marksheet.result.percentage and marksheet.result.maximum_marks:
+    if marksheet.result.maximum_marks and marksheet.result.total_obtained:
         pct = round((marksheet.result.total_obtained / marksheet.result.maximum_marks) * 100, 2)
         marksheet.result.percentage = f"{pct}%"
 
