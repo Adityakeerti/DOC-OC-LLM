@@ -17,7 +17,7 @@ from PIL import Image, ImageOps
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-MAX_DIMENSION = 1600  # High-fidelity trade-off: preserves small text and double digits with crisp patches
+MAX_DIMENSION = 1280  # Optimal high-fidelity resolution for fast tokenization without context overflow
 
 
 # ── PDF Handling ──────────────────────────────────────────────────────────────

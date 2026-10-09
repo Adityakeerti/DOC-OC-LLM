@@ -29,3 +29,7 @@ ENV/
 *.log
 log.txt
 .DS_Store
+DemoVideo/
+scratch/*.jpg
+scratch/*.png
+scratch/*.txt

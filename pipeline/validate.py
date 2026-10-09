@@ -265,6 +265,24 @@ def reconcile_icse_subjects(marksheet: Marksheet) -> list[str]:
 
 # ── Arithmetic Checks ─────────────────────────────────────────────────────────
 
+def parse_numeric_grade(grade_str: Optional[str]) -> Optional[float]:
+    """Extract numeric marks if grade column contains actual marks (e.g. '93', '118'), not letter grades ('A1', 'B')."""
+    if not grade_str:
+        return None
+    s = str(grade_str).strip()
+    # Letter grades or status words are not marks
+    if re.match(r"^[A-Ga-gOoSs][1-9]?\+?$", s) or s.upper() in ["PASS", "FAIL", "DISTINCTION", "FIRST", "SECOND", "THIRD", "COMP"]:
+        return None
+    cleaned = re.sub(r"[^0-9.]", "", s)
+    try:
+        val = float(cleaned) if cleaned else None
+        if val is not None and val > 10.0:  # Valid marks obtained
+            return val
+    except ValueError:
+        pass
+    return None
+
+
 def check_arithmetic(marksheet: Marksheet) -> list[str]:
     """
     Verify that theory + practical = total for each subject.
@@ -294,13 +312,33 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
 
     # 2. Arithmetic reconciliation
     for subj in marksheet.subjects:
+        # 2-Column shift detection: If Max marks was put in Theory and Min pass marks in Practical
+        min_pass_thresholds = [30.0, 33.0, 35.0, 36.0, 40.0, 44.0, 45.0]
+        max_marks_standards = [75.0, 100.0, 125.0, 150.0, 200.0]
+        if subj.theory in max_marks_standards and subj.practical in min_pass_thresholds:
+            grade_num = parse_numeric_grade(subj.grade)
+            subj.max_marks = subj.theory
+            subj.theory = None
+            subj.practical = None
+            if subj.total is not None and subj.total <= subj.max_marks and subj.total not in max_marks_standards:
+                warnings.append(
+                    f"{subj.name}: Stripped Max/Min pass marks from Theory/Practical (Total={subj.total}, Max={subj.max_marks})"
+                )
+            elif grade_num is not None:
+                subj.total = grade_num
+                subj.grade = None
+                warnings.append(
+                    f"{subj.name}: Corrected column-shift (Max={subj.max_marks} -> Total={subj.total})"
+                )
+            continue
+
         # If total is missing but theory is present and practical is None:
         if subj.total is None and subj.theory is not None and subj.practical is None:
             subj.total = subj.theory
             warnings.append(f"{subj.name}: Auto-set Total to Theory ({subj.theory})")
         # Conversely, if theory is missing but total is present and practical is None:
         elif subj.theory is None and subj.total is not None and subj.practical is None:
-            subj.theory = subj.total
+            pass  # Single-score marksheet (e.g. State board / Karnataka SSLC)
 
         # If total is present and theory is present, but practical is missing:
         if subj.total is not None and subj.theory is not None:
@@ -327,7 +365,10 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
         # 2c. Self-healing: subject total cannot exceed max marks
         max_limit = subj.max_marks or 100.0
         if subj.total is not None and subj.total > max_limit:
-            if subj.theory is not None and subj.theory <= max_limit:
+            if subj.theory is not None and subj.theory <= max_limit and subj.practical is not None and subj.theory + subj.practical == subj.total:
+                # Max marks was probably not 100 (e.g. out of 125, 150, 200)
+                subj.max_marks = max(max_limit, subj.total)
+            elif subj.theory is not None and subj.theory <= max_limit:
                 subj.total = subj.theory
                 subj.practical = None
                 warnings.append(f"{subj.name}: Total exceeded {max_limit}; reset to Theory {subj.theory}")
@@ -353,7 +394,8 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
             if (subj.theory + subj.practical) > max_limit:
                 old_prac = subj.practical
                 subj.practical = None
-                subj.total = subj.theory
+                if subj.total is None or subj.total > max_limit:
+                    subj.total = subj.theory
                 warnings.append(
                     f"{subj.name}: Practical reset to null because Theory ({subj.theory}) + "
                     f"Practical ({old_prac}) exceeds max marks {max_limit}"
@@ -420,7 +462,7 @@ def reconcile_aggregate_results(marksheet: Marksheet) -> list[str]:
 
     # 1. Total obtained reconciliation
     curr_total = marksheet.result.total_obtained
-    if curr_total is None or curr_total > sum_max or (curr_total < sum_obtained * 0.4 and len(academic_subjs) >= 3):
+    if curr_total is None or curr_total > (sum_max * 1.05) or (curr_total < sum_obtained * 0.4 and len(academic_subjs) >= 3):
         marksheet.result.total_obtained = sum_obtained
         warnings.append(
             f"Auto-reconciled grand total obtained to {sum_obtained} from {len(academic_subjs)} academic subjects"
@@ -433,13 +475,14 @@ def reconcile_aggregate_results(marksheet: Marksheet) -> list[str]:
             marksheet.result.total_obtained = sum_obtained
 
     # 2. Maximum marks reconciliation (cap inflated maximum_marks from co-scholastic rows)
-    if marksheet.result.maximum_marks is None or marksheet.result.maximum_marks > sum_max or marksheet.result.maximum_marks < marksheet.result.total_obtained:
+    if marksheet.result.maximum_marks is None or marksheet.result.maximum_marks > (sum_max * 1.05) or marksheet.result.maximum_marks < (marksheet.result.total_obtained or 0):
         marksheet.result.maximum_marks = sum_max
 
-    # 3. Percentage reconciliation
-    if marksheet.result.maximum_marks and marksheet.result.total_obtained:
-        pct = round((marksheet.result.total_obtained / marksheet.result.maximum_marks) * 100, 2)
-        marksheet.result.percentage = f"{pct}%"
+    # 3. Percentage reconciliation — only compute if not already provided or clearly broken
+    if not marksheet.result.percentage:
+        if marksheet.result.maximum_marks and marksheet.result.total_obtained:
+            pct = round((marksheet.result.total_obtained / marksheet.result.maximum_marks) * 100, 2)
+            marksheet.result.percentage = f"{pct}%"
 
     return warnings
 

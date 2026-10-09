@@ -77,6 +77,7 @@ $LLAMA_SERVER \
     --port $PORT \
     --n-gpu-layers $GPU_LAYERS \
     --ctx-size 8192 \
+    --parallel 1 \
     --threads 4 \
     --flash-attn on \
     --reasoning off \
