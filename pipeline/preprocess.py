@@ -17,7 +17,7 @@ from PIL import Image, ImageOps
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-MAX_DIMENSION = 1280  # Optimal high-fidelity resolution for fast tokenization without context overflow
+MAX_DIMENSION = 1600  # Optimal high-fidelity resolution for sharp 8pt table OCR
 
 
 # ── PDF Handling ──────────────────────────────────────────────────────────────

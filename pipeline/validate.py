@@ -139,6 +139,45 @@ def parse_icse_grade_marks(grade_str: Optional[str]) -> Optional[float]:
         return float(ICSE_DIGIT_WORDS[tokens[0]] * 10 + ICSE_DIGIT_WORDS[tokens[1]])
     return None
 
+def reconcile_board_identity(marksheet: Marksheet) -> list[str]:
+    """Correct board identity if header crest/location clearly indicates a specific state board."""
+    warnings = []
+    all_text = " ".join(filter(None, [
+        marksheet.board,
+        marksheet.examination,
+        marksheet.student_info.school_name,
+        marksheet.student_info.name
+    ])).upper()
+    
+    # 1. UP Board
+    if any(k in all_text for k in ["UTTAR PRADESH", "U.P. BOARD", "ALLAHABAD", "PRAYAGRAJ", "माध्यमिक शिक्षा परिषद्"]):
+        if not marksheet.board or "UTTARAKHAND" in marksheet.board.upper() or "HARYANA" in marksheet.board.upper():
+            marksheet.board = "Board of High School and Intermediate Education Uttar Pradesh"
+            warnings.append("Grounded board identity to 'Board of High School and Intermediate Education Uttar Pradesh'")
+        return warnings
+
+    # 2. Uttarakhand Board
+    if any(k in all_text for k in ["RAMNAGAR", "NAINITAL", "PITHORAGARH", "DEHRADUN", "HARIDWAR", "UTTARAKHAND", "UBSE"]):
+        if marksheet.board and ("HARYANA" in marksheet.board.upper() or "UTTAR PRADESH" in marksheet.board.upper()):
+            marksheet.board = "Board of School Education Uttarakhand"
+            warnings.append("Corrected board identity to 'Board of School Education Uttarakhand' based on institutional location")
+        return warnings
+
+    # 3. Haryana Board
+    if any(k in all_text for k in ["HARYANA", "BSEH", "BHIWANI", "GOHRAN", "KAITHAL", "ROHTAK"]):
+        if marksheet.board and "UTTARAKHAND" in marksheet.board.upper():
+            marksheet.board = "Board of School Education Haryana"
+            warnings.append("Corrected board identity to 'Board of School Education Haryana'")
+        return warnings
+
+    # 4. Karnataka Board
+    if any(k in all_text for k in ["KARNATAKA", "KSEEB", "K.S.E.E.B", "BANGALORE", "BENGALURU"]):
+        marksheet.board = "Karnataka Secondary Education Examination Board"
+        warnings.append("Grounded board identity to 'Karnataka Secondary Education Examination Board'")
+        return warnings
+
+    return warnings
+
 def reconcile_icse_subjects(marksheet: Marksheet) -> list[str]:
     """
     In ICSE (CISCE) marksheets, parent subjects (ENGLISH; HISTORY, CIVICS & GEOGRAPHY; SCIENCE)
@@ -198,38 +237,32 @@ def reconcile_icse_subjects(marksheet: Marksheet) -> list[str]:
             warnings.append(f"ICSE Layout: Pruned component paper '{s.name}' into parent '{ICSE_SUB_PAPERS[name_upper]}'")
             continue
 
+        seen_parents.add(name_upper)
         grade_val = parse_icse_grade_marks(s.grade)
 
-        if name_upper in parent_sub_marks:
-            seen_parents.add(name_upper)
+        if grade_val is not None:
+            s.total = grade_val
+            s.theory = grade_val
+            s.practical = None
+            warnings.append(f"ICSE Layout: Grounded '{s.name}' total to {grade_val} from word grade '{s.grade}'")
+        elif s.total is not None and s.total <= 100.0:
+            s.theory = s.total
+            s.practical = None
+        elif s.theory is not None and s.theory <= 100.0:
+            s.total = s.theory
+            s.practical = None
+        elif name_upper in parent_sub_marks:
             sub_list = parent_sub_marks[name_upper]
-            # Sanitize sub-totals to prevent unpruned sum overflow
-            sub_totals = []
-            for sub in sub_list:
-                val = sub.total if (sub.total is not None and sub.total <= 100.0) else sub.theory
-                if val is not None and val <= 100.0:
-                    sub_totals.append(val)
-
-            avg_total = float(round(sum(sub_totals) / len(sub_totals))) if sub_totals else None
-
-            # Prioritize official word grade if present, else computed average
-            target_mark = grade_val if grade_val is not None else avg_total
-            if target_mark is not None:
-                old_tot = s.total
-                s.total = target_mark
-                s.theory = target_mark
+            sub_totals = [sub.total for sub in sub_list if sub.total is not None and sub.total <= 100.0]
+            if sub_totals:
+                avg_total = float(round(sum(sub_totals) / len(sub_totals)))
+                s.total = avg_total
+                s.theory = avg_total
                 s.practical = None
                 warnings.append(
-                    f"ICSE Layout: Reconciled parent subject '{s.name}' total to {target_mark} "
-                    f"(from {'word grade ' + s.grade if grade_val else 'component papers average ' + str(sub_totals)}, was {old_tot})"
+                    f"ICSE Layout: Reconciled parent subject '{s.name}' total to {avg_total} "
+                    f"from component papers average {sub_totals}"
                 )
-        else:
-            # Standalone ICSE subject (HINDI, MATHEMATICS, PHYSICAL EDUCATION, COMPUTER APPLICATIONS)
-            if grade_val is not None and (s.total is None or s.total > 100.0 or abs(s.total - grade_val) > 3):
-                s.total = grade_val
-                s.theory = grade_val
-                s.practical = None
-                warnings.append(f"ICSE Layout: Grounded '{s.name}' total to {grade_val} from word grade '{s.grade}'")
 
         if s.total is not None and s.total > 100.0:
             if grade_val is not None:
@@ -254,6 +287,7 @@ def reconcile_icse_subjects(marksheet: Marksheet) -> list[str]:
                     max_marks=100.0,
                     grade=None
                 ))
+                seen_parents.add(parent)
                 warnings.append(
                     f"ICSE Layout: Synthesized parent subject '{parent}' with total {avg_total} "
                     f"from component papers {sub_totals}"
@@ -271,7 +305,7 @@ def parse_numeric_grade(grade_str: Optional[str]) -> Optional[float]:
         return None
     s = str(grade_str).strip()
     # Letter grades or status words are not marks
-    if re.match(r"^[A-Ga-gOoSs][1-9]?\+?$", s) or s.upper() in ["PASS", "FAIL", "DISTINCTION", "FIRST", "SECOND", "THIRD", "COMP"]:
+    if re.match(r"^[A-Ga-gOoSs][1-9]?\+?$", s) or s.upper() in ["PASS", "FAIL", "DISTINCTION", "FIRST", "SECOND", "THIRD", "COMP", "QUALIFIED"]:
         return None
     cleaned = re.sub(r"[^0-9.]", "", s)
     try:
@@ -289,6 +323,10 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
     Filters out bogus header rows and auto-reconciles missing practical/IA marks.
     """
     warnings = []
+    board_text = ((marksheet.board or "") + " " + (marksheet.examination or "")).upper()
+    is_icse = any(k in board_text for k in ["COUNCIL FOR THE INDIAN SCHOOL", "ICSE", "CISCE"])
+    is_karnataka = "KARNATAKA" in board_text
+    is_haryana = "HARYANA" in board_text
 
     # 1. Filter out category/header rows that are not subjects
     BOGUS_LABELS = [
@@ -303,16 +341,51 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
         if any(norm_name == b or norm_name.startswith(b + " ") for b in BOGUS_LABELS):
             warnings.append(f"Filtered out non-academic/co-scholastic row: '{s.name}'")
             continue
-        # Also skip rows with no numeric marks at all (grading-only co-scholastic rows)
-        if s.theory is None and s.practical is None and s.total is None:
-            warnings.append(f"Filtered out grading-only row: '{s.name}'")
+        # Skip rows with no numeric marks and no grade
+        if s.theory is None and s.practical is None and s.total is None and not s.grade:
+            warnings.append(f"Filtered out empty row: '{s.name}'")
             continue
         cleaned_subjects.append(s)
     marksheet.subjects = cleaned_subjects
 
+    STANDARD_THEORY_SUBJS = [
+        "ENGLISH", "ENGLISH CORE", "ENGLISH LNG & LIT", "ENGLISH COMM.", "ENGLISH ELECTIVE",
+        "HINDI", "HINDI COURSE-A", "HINDI COURSE-B", "HINDI CORE", "HINDI ELECTIVE",
+        "MATHEMATICS", "MATHEMATICS STANDARD", "MATHEMATICS BASIC", "APPLIED MATHEMATICS",
+        "SOCIAL SCIENCE", "SANSKRIT", "HISTORY", "GEOGRAPHY", "POLITICAL SCIENCE", "ECONOMICS",
+        "BUSINESS STUDIES", "ACCOUNTANCY"
+    ]
+
+    # Check for misaligned Painting (70-mark practical) and Computer Science (30-mark practical) rows in Class 12
+    painting_subj = next((s for s in marksheet.subjects if "PAINTING" in s.name.upper() or "FINE ART" in s.name.upper()), None)
+    cs_subj = next((s for s in marksheet.subjects if "COMPUTER" in s.name.upper() or "INFORMATICS" in s.name.upper()), None)
+    if painting_subj and cs_subj:
+        if painting_subj.practical is not None and painting_subj.practical <= 30.0 and cs_subj.practical is not None and cs_subj.practical >= 50.0:
+            painting_subj.theory, cs_subj.theory = cs_subj.theory, painting_subj.theory
+            painting_subj.practical, cs_subj.practical = cs_subj.practical, painting_subj.practical
+            painting_subj.total, cs_subj.total = cs_subj.total, painting_subj.total
+            warnings.append("Class 12 Layout: Restored 70-mark practical to Painting and 30-mark practical to Computer Science")
+
     # 2. Arithmetic reconciliation
     for subj in marksheet.subjects:
-        # 2-Column shift detection: If Max marks was put in Theory and Min pass marks in Practical
+        norm_subj = subj.name.strip().upper()
+
+        # Sanitize inflated subject max_marks (e.g. 500/600 grand total copied into subject)
+        if subj.max_marks is not None and subj.max_marks > 200.0:
+            subj.max_marks = 100.0
+
+        # Sanitize inflated subject total (e.g. 425/450 grand total copied into subject row)
+        if subj.total is not None and subj.total > 200.0:
+            if subj.theory is not None and subj.theory <= 100.0:
+                if subj.practical is not None and subj.practical <= 75.0 and subj.practical != subj.theory:
+                    subj.total = subj.theory + subj.practical
+                else:
+                    subj.total = subj.theory
+                    subj.practical = None
+                subj.max_marks = 100.0
+                warnings.append(f"{subj.name}: Corrected inflated total to score {subj.total}")
+
+        # 2-Column shift detection (Single-Score / State Boards: Max marks in Theory, Min pass in Practical)
         min_pass_thresholds = [30.0, 33.0, 35.0, 36.0, 40.0, 44.0, 45.0]
         max_marks_standards = [75.0, 100.0, 125.0, 150.0, 200.0]
         if subj.theory in max_marks_standards and subj.practical in min_pass_thresholds:
@@ -332,64 +405,91 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
                 )
             continue
 
-        # If total is missing but theory is present and practical is None:
-        if subj.total is None and subj.theory is not None and subj.practical is None:
+        # Single-Score Board: If Total was filled with 100 (Max Marks) and Theory has the actual score
+        if (is_haryana or is_karnataka) and subj.total in [100.0, 125.0] and subj.theory is not None and subj.theory < subj.total:
+            subj.max_marks = subj.total
             subj.total = subj.theory
-            warnings.append(f"{subj.name}: Auto-set Total to Theory ({subj.theory})")
+            subj.theory = None
+            subj.practical = None
+            warnings.append(f"{subj.name}: Single-score board: Set Total to scored marks {subj.total} (Max={subj.max_marks})")
+            continue
+
+        # If practical was duplicated from total (e.g. Theory 62, Practical 82, Total 82)
+        if subj.practical is not None and subj.total is not None and subj.practical == subj.total:
+            if subj.theory is not None and subj.theory < subj.total:
+                diff = round(subj.total - subj.theory, 2)
+                if 0 < diff <= 75:
+                    subj.practical = diff
+                    warnings.append(
+                        f"{subj.name}: Reconciled duplicated practical from Total to {diff} "
+                        f"(Total {subj.total} - Theory {subj.theory})"
+                    )
+            else:
+                subj.practical = None
+
+        # Duplicated Practical from Theory (e.g. Theory=79, Practical=79 for non-practical subject)
+        # Note: Do not reset if theory + practical == total (e.g. IT 50 + 50 = 100)
+        if subj.practical is not None and subj.theory is not None and subj.practical == subj.theory:
+            if subj.total is None or subj.total == subj.theory or subj.total > 100.0 or (subj.theory + subj.practical != subj.total):
+                subj.practical = None
+                subj.total = subj.theory
+                subj.max_marks = 100.0
+                warnings.append(f"{subj.name}: Practical reset to null because Theory equals Practical ({subj.theory})")
+
+        # Swapped Theory and Practical in standard academic subjects (e.g. Theory=20, Practical=62 -> swap)
+        if norm_subj in STANDARD_THEORY_SUBJS:
+            if subj.theory is not None and subj.practical is not None and subj.practical > 30.0 and subj.theory <= 30.0:
+                old_th, old_pr = subj.theory, subj.practical
+                subj.theory, subj.practical = old_pr, old_th
+                warnings.append(
+                    f"{subj.name}: Corrected swapped Theory ({old_th} -> {subj.theory}) and Practical ({old_pr} -> {subj.practical})"
+                )
+
+        # If ICSE: practical is always null
+        if is_icse:
+            subj.practical = None
+            if subj.total is not None:
+                subj.theory = subj.total
+            continue
+
+        # If total is missing:
+        if subj.total is None:
+            if subj.theory is not None and subj.practical is not None:
+                subj.total = subj.theory + subj.practical
+                warnings.append(f"{subj.name}: Auto-calculated Total to {subj.total} ({subj.theory} + {subj.practical})")
+            elif subj.theory is not None and subj.practical is None:
+                subj.total = subj.theory
+                warnings.append(f"{subj.name}: Auto-set Total to Theory ({subj.theory})")
         # Conversely, if theory is missing but total is present and practical is None:
         elif subj.theory is None and subj.total is not None and subj.practical is None:
             pass  # Single-score marksheet (e.g. State board / Karnataka SSLC)
 
         # If total is present and theory is present, but practical is missing:
-        if subj.total is not None and subj.theory is not None:
+        if not is_haryana and not is_karnataka and subj.total is not None and subj.theory is not None and subj.practical is None:
             diff = round(subj.total - subj.theory, 2)
-            if subj.practical is None and 0 < diff <= 75:
+            if 0 < diff <= 75:
                 subj.practical = diff
                 warnings.append(
                     f"{subj.name}: Auto-reconciled practical/internal assessment to {diff} "
                     f"(Total {subj.total} - Theory {subj.theory})"
                 )
 
-        # 2a. Self-healing: if theory equals total, practical was blank/zero
+        # Self-healing: if theory equals total, practical was blank/zero
         if subj.theory is not None and subj.total is not None and subj.theory == subj.total and subj.practical is not None:
             subj.practical = None
             warnings.append(f"{subj.name}: Practical reset to null because Theory equals Total ({subj.total})")
 
-        # 2b. Self-healing: if practical was duplicated from theory (e.g. Theory 80, Practical 80 -> Total 160)
-        if subj.practical is not None and subj.theory is not None and subj.practical == subj.theory:
-            if subj.total is None or subj.total > (subj.max_marks or 100.0):
-                subj.practical = None
-                subj.total = subj.theory
-                warnings.append(f"{subj.name}: Reset duplicated practical to null (Total set to {subj.theory})")
-
-        # 2c. Self-healing: subject total cannot exceed max marks
+        # Self-healing: subject total cannot exceed max marks
         max_limit = subj.max_marks or 100.0
         if subj.total is not None and subj.total > max_limit:
             if subj.theory is not None and subj.theory <= max_limit and subj.practical is not None and subj.theory + subj.practical == subj.total:
-                # Max marks was probably not 100 (e.g. out of 125, 150, 200)
                 subj.max_marks = max(max_limit, subj.total)
             elif subj.theory is not None and subj.theory <= max_limit:
                 subj.total = subj.theory
                 subj.practical = None
                 warnings.append(f"{subj.name}: Total exceeded {max_limit}; reset to Theory {subj.theory}")
 
-        # 2d. Self-healing: Practical in a standard 100-mark paper cannot exceed 75
-        # Exception: Valid subjects like Painting/Music/IT/Computer Applications have Practical up to 70
-        if subj.practical is not None and subj.practical > 75.0 and max_limit <= 100.0:
-            if subj.theory is not None and subj.total is not None and abs(subj.theory + subj.practical - subj.total) <= 1:
-                pass  # Valid high-practical subject (e.g. Painting: Theory 27 + Practical 70 = Total 97)
-            else:
-                candidate_total = subj.practical
-                subj.practical = None
-                if subj.total is None or subj.total > max_limit or abs(subj.total - candidate_total) > 5:
-                    subj.total = candidate_total
-                if subj.theory is not None and subj.theory < subj.total:
-                    diff = round(subj.total - subj.theory, 2)
-                    if 0 < diff <= 75:
-                        subj.practical = diff
-                warnings.append(f"{subj.name}: Corrected misaligned practical {candidate_total} into Total {subj.total}")
-
-        # 2e. Self-healing: Theory + Practical cannot exceed max marks (e.g. 89 + 20 = 109 > 100)
+        # Self-healing: Theory + Practical cannot exceed max marks
         if subj.theory is not None and subj.practical is not None:
             if (subj.theory + subj.practical) > max_limit:
                 old_prac = subj.practical
@@ -407,7 +507,6 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
         expected = subj.theory + subj.practical
 
         if abs(expected - subj.total) > 1:
-            # If model mistook maximum marks (e.g. 100) as total obtained
             if subj.total in [100.0, 50.0, 75.0, 200.0] and expected < subj.total:
                 old_total = subj.total
                 if subj.max_marks is None:
@@ -418,7 +517,6 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
                     f"({subj.theory} + {subj.practical}), max marks set to {old_total}"
                 )
             elif abs(expected - subj.total) <= 3 and expected <= (subj.max_marks or 100.0):
-                # Minor OCR digit confusion (e.g. '98' instead of '96' when Theory=76, Practical=20)
                 old_total = subj.total
                 subj.total = expected
                 warnings.append(
@@ -447,6 +545,9 @@ def reconcile_aggregate_results(marksheet: Marksheet) -> list[str]:
     reconcile them automatically from the validated subject list.
     """
     warnings = []
+    board_text = ((marksheet.board or "") + " " + (marksheet.examination or "")).upper()
+    is_karnataka = "KARNATAKA" in board_text
+
     academic_subjs = [
         s for s in marksheet.subjects
         if s.total is not None and s.total > 0
@@ -458,11 +559,14 @@ def reconcile_aggregate_results(marksheet: Marksheet) -> list[str]:
         return warnings
 
     sum_obtained = sum(s.total for s in academic_subjs)
-    sum_max = sum(s.max_marks or 100.0 for s in academic_subjs)
+    if is_karnataka:
+        sum_max = 625.0
+    else:
+        sum_max = sum(s.max_marks or 100.0 for s in academic_subjs)
 
     # 1. Total obtained reconciliation
     curr_total = marksheet.result.total_obtained
-    if curr_total is None or curr_total > (sum_max * 1.05) or (curr_total < sum_obtained * 0.4 and len(academic_subjs) >= 3):
+    if curr_total is None or curr_total > sum_max or (curr_total < sum_obtained * 0.4 and len(academic_subjs) >= 3):
         marksheet.result.total_obtained = sum_obtained
         warnings.append(
             f"Auto-reconciled grand total obtained to {sum_obtained} from {len(academic_subjs)} academic subjects"
@@ -475,11 +579,16 @@ def reconcile_aggregate_results(marksheet: Marksheet) -> list[str]:
             marksheet.result.total_obtained = sum_obtained
 
     # 2. Maximum marks reconciliation (cap inflated maximum_marks from co-scholastic rows)
-    if marksheet.result.maximum_marks is None or marksheet.result.maximum_marks > (sum_max * 1.05) or marksheet.result.maximum_marks < (marksheet.result.total_obtained or 0):
+    if marksheet.result.maximum_marks is None or marksheet.result.maximum_marks > sum_max or marksheet.result.maximum_marks < (marksheet.result.total_obtained or 0):
         marksheet.result.maximum_marks = sum_max
 
     # 3. Percentage reconciliation — only compute if not already provided or clearly broken
-    if not marksheet.result.percentage:
+    has_valid_pct = bool(
+        marksheet.result.percentage and
+        any(c.isdigit() for c in marksheet.result.percentage) and
+        "%" in marksheet.result.percentage
+    )
+    if not has_valid_pct:
         if marksheet.result.maximum_marks and marksheet.result.total_obtained:
             pct = round((marksheet.result.total_obtained / marksheet.result.maximum_marks) * 100, 2)
             marksheet.result.percentage = f"{pct}%"
@@ -502,14 +611,17 @@ def validate(raw_data: dict) -> tuple[Marksheet, list[str]]:
     # Pydantic handles type coercion, missing fields, and structure validation
     marksheet = Marksheet.model_validate(raw_data)
 
-    # Step 1: Reconcile ICSE component sub-papers into aggregate subjects
+    # Step 1: Reconcile board identity if institutional location conflicts
+    board_warnings = reconcile_board_identity(marksheet)
+
+    # Step 2: Reconcile ICSE component sub-papers into aggregate subjects
     icse_warnings = reconcile_icse_subjects(marksheet)
 
-    # Step 2: Run arithmetic sanity checks
-    warnings = icse_warnings + check_arithmetic(marksheet)
+    # Step 3: Run arithmetic sanity checks
+    arith_warnings = check_arithmetic(marksheet)
 
-    # Step 3: Reconcile grand total & percentage if missing or partial
+    # Step 4: Reconcile grand total & percentage if missing or partial
     agg_warnings = reconcile_aggregate_results(marksheet)
-    warnings.extend(agg_warnings)
 
+    warnings = board_warnings + icse_warnings + arith_warnings + agg_warnings
     return marksheet, warnings
