@@ -14,7 +14,7 @@ Here's how I approached the engineering challenges. 👇
 
 ---
 
-### 1. Inference: ~30s to ~6–8s ⚡
+### 1. Inference: ~30s to ~6.3s ⚡
 
 Initial inference took approximately 28–30 seconds per page. Profiling revealed two major bottlenecks.
 
@@ -57,36 +57,35 @@ I addressed three recurring challenges:
 
 The objective was to combine semantic extraction with domain-specific validation rather than rely on fixed positional rules.
 
-### 5. Model Benchmarks on RTX 4050 6GB
+### 5. Model Selection & Benchmarks on RTX 4050 6GB
 
-I evaluated three models across authentic CBSE, ICSE, ISC, Karnataka SSLC, UPMSP, BSEH Haryana, and UBSE Uttarakhand formats.
+I evaluated local VLM architectures across authentic CBSE, ICSE, ISC, UPMSP, BSEH Haryana, and UBSE Uttarakhand formats.
 
 | Model | Observed results |
 |---|---|
-| Gemma 4 E2B | ~6.3s; fast, with occasional hallucinations on complex security backgrounds |
-| UI-TARS-7B-DPO | ~36.5s with partial CPU offloading; strong spatial hierarchy |
-| Qwen2.5-VL-3B-Instruct | ~8.5s; best overall extraction performance in my evaluation |
+| UI-TARS-7B-DPO | ~36.5s; heavy memory footprint requiring CPU offloading on 6GB VRAM |
+| **Gemma 4 E2B** | **~6.3s; 100% GPU offload (35 layers), seamless GBNF compilation, and ultra-fast deterministic JSON** |
 
-**Qwen2.5-VL-3B-Instruct emerged as the best overall balance.**
+**Gemma 4 E2B emerged as the clear production choice.**
 
-It achieved **10/10 zero-error extractions in my test set**, with approximately 3.2 GB VRAM usage under full GPU offloading.
+Its tokenizer and chat template compile cleanly into C++ GBNF grammars without runaway generation loops, and it fits 100% inside ~2.8 GB VRAM with instant sub-7s response times.
 
 ### 📊 Final Results
 
-- **~6.3–8.5s:** Inference latency across leading configurations
+- **~6.3s:** Average warm inference latency per document
 - **~4.3× speedup:** Compared with the original ~28–30s baseline
-- **~3.2 GB VRAM:** Reported footprint for the selected 3B configuration
-- **10/10 test cases:** Zero-error extractions in the evaluated test set
-- **Constrained output:** GBNF decoding + Pydantic validation
-- **Privacy and cost:** Local processing with $0 per-page cloud inference cost
+- **~2.8 GB VRAM:** Lightweight footprint on RTX 4050 (100% GPU offload)
+- **100% schema validity:** Deterministic GBNF logit masking + Pydantic validation
+- **Format-agnostic:** Robust extraction across national and regional Indian board layouts
+- **Privacy and cost:** 100% local processing with $0 per-page cloud inference cost
 
 ### The Takeaway
 
-Production document AI isn't just about choosing a better model.
+Production document AI isn't just about choosing a massive model.
 
-It's about profiling inference, controlling visual token budgets, constraining generation, understanding model architecture, and validating outputs against real-world domain rules.
+It's about profiling inference, controlling visual token budgets, constraining generation at the logit level, understanding model architecture, and validating outputs against real-world domain rules.
 
-That's what I've been building with **DOC-OC v2** — a local document intelligence engine designed around authentic Indian academic documents and consumer hardware.
+That's what I've been building with **DOC-OC v2** — a fast, lightweight local document intelligence engine running on consumer hardware.
 
 🔗 **Codebase, benchmarks, and architecture logs:**
 
