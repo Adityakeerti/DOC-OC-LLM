@@ -113,12 +113,13 @@ CRITICAL EXTRACTION RULES:
      * 3rd marks column: TOTAL marks for that subject (e.g. 100, 90, 97, 82, 70, 96). Cross-check with 'TOTAL IN WORDS'.
      * Extract "theory": theory_str, "practical": practical_str, "total": total_str, "max_marks": "100", "grade": grade_str.
 
-   - STATE BOARDS (Uttarakhand / UP / MP):
-     * Follow the 3-column marks layout: [Theory] [Practical] [Total].
-     * Hindi, English, and Sanskrit have NO practical exam (dash '-' in 2nd column); output "practical": null, "total": theory_str. DO NOT duplicate theory into practical!
-     * Mathematics, Science, and Social Science have practical marks (e.g. "20", "30") in the 2nd marks column; output "practical": practical_str and "total": total_str (e.g. 77 + 20 = 97, 72 + 20 = 92, 75 + 20 = 95).
-     * "total" is the subject total (or equal to theory). NEVER put Grand Total (e.g. 425, 450) into subject total!
+   - STATE BOARDS (Uttarakhand / UP / MP / Intermediate):
+     * Table columns from left to right: [SUB CODE] [SUBJECT NAME] [THEORY (सैद्धान्तिक)] [PRACTICAL / IA (प्रायोगिक)] [TOTAL (योग)] [TOTAL IN WORDS] [GRADE / RESULT].
+     * 1st marks column = THEORY marks (e.g. "054", "053", "026", "044", "060", "070", "077").
+     * 2nd marks column = PRACTICAL marks (e.g. "020", "030", "019"). If blank or dash '-', output "practical": null.
+     * 3rd marks column = TOTAL marks for that subject (e.g. "074", "073", "056", "090", "096").
      * "max_marks": "100" for each subject.
+     * NEVER put Grand Total (e.g. 419, 356, 425, 450) into individual subject rows!
 
    - SINGLE-SCORE STATE BOARDS (Haryana BSEH / Karnataka SSLC):
      * Table columns: [SUBJECTS] [MARKS SCORED / OBTAINED / प्राप्तांक] [PASS MARKS 33/35] [MAX MARKS 100/125] [GRADE].

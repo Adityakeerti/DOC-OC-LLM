@@ -427,10 +427,30 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
             else:
                 subj.practical = None
 
-        # Duplicated Practical from Theory (e.g. Theory=79, Practical=79 for non-practical subject)
-        # Note: Do not reset if theory + practical == total (e.g. IT 50 + 50 = 100)
+        # If model put Total into Theory column (e.g. Theory 74, Practical 20, Total 74)
+        if subj.theory is not None and subj.total is not None and subj.theory == subj.total and subj.practical is not None:
+            if 0 < subj.practical <= 50.0 and subj.total > subj.practical:
+                actual_theory = round(subj.total - subj.practical, 2)
+                if actual_theory > 0:
+                    subj.theory = actual_theory
+                    warnings.append(
+                        f"{subj.name}: Reconciled Theory to {actual_theory} "
+                        f"(Total {subj.total} - Practical {subj.practical})"
+                    )
+            else:
+                subj.practical = None
+
+        # Duplicated Practical from Theory
         if subj.practical is not None and subj.theory is not None and subj.practical == subj.theory:
-            if subj.total is None or subj.total == subj.theory or subj.total > 100.0 or (subj.theory + subj.practical != subj.total):
+            if subj.total is not None and subj.total > subj.theory and subj.total <= 100.0:
+                # Valid Total (e.g. 70.0) with Theory=30, Practical=30 -> Theory was OCR digit confusion (70 - 30 = 40)
+                actual_theory = round(subj.total - subj.practical, 2)
+                subj.theory = actual_theory
+                warnings.append(
+                    f"{subj.name}: Corrected Theory to {actual_theory} "
+                    f"(Total {subj.total} - Practical {subj.practical})"
+                )
+            elif subj.total is None or subj.total == subj.theory or subj.total > 100.0 or (subj.theory + subj.practical != subj.total):
                 subj.practical = None
                 subj.total = subj.theory
                 subj.max_marks = 100.0
