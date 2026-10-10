@@ -859,7 +859,7 @@
               <span style="font-weight: normal; text-transform: none; color: var(--accent);">1-Click Test</span>
             </div>
             <div class="preset-pills">
-              <button class="preset-btn active" onclick="loadSample('/dataset/demo/icse.jpg', 'icse.jpg', this)">ISC 12th (icse.jpg)</button>
+              <button class="preset-btn" onclick="loadSample('/dataset/demo/icse.jpg', 'icse.jpg', this)">ISC 12th (icse.jpg)</button>
               <button class="preset-btn" onclick="loadSample('/dataset/demo/cbse.pdf', 'cbse.pdf', this)">CBSE 10th (cbse.pdf)</button>
               <button class="preset-btn" onclick="loadSample('/dataset/demo/uk2.pdf', 'uk2.pdf', this)">UBSE 12th (uk2.pdf)</button>
               <button class="preset-btn" onclick="loadSample('/dataset/demo/uk.pdf', 'uk.pdf', this)">UBSE 10th (uk.pdf)</button>
@@ -1374,14 +1374,6 @@
       if (!s) return '';
       return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]);
     }
-
-    // Automatically load the first demo sample on initial page open
-    window.addEventListener('DOMContentLoaded', () => {
-      // Auto-preview the default demo sample
-      vpPlaceholder.style.display = 'none';
-      vpImg.style.display = 'block';
-      vpImg.src = '/dataset/demo/icse.jpg';
-    });
   </script>
 </body>
 
