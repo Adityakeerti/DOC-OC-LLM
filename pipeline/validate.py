@@ -68,6 +68,15 @@ class StudentInfo(BaseModel):
         s = re.sub(r"^(Mr\.?|Mrs\.?|Smt\.?|Shri\.?|Master\.?|Km\.?|Miss\.?)\s+", "", s, flags=re.IGNORECASE).strip()
         return s
 
+    @field_validator("roll_no", mode="before")
+    @classmethod
+    def clean_roll_no(cls, v):
+        if not v or not isinstance(v, str):
+            return v
+        s = v.strip()
+        s = re.sub(r"^(?:Unique\s*ID\s*:?|Roll\s*No\.?\s*:?|Reg\.?\s*No\.?\s*:?|Index\s*No\.?\s*:?)\s*", "", s, flags=re.IGNORECASE).strip()
+        return s
+
 
 class Result(BaseModel):
     """Overall result summary from the bottom of the marksheet."""
@@ -190,10 +199,7 @@ def reconcile_icse_subjects(marksheet: Marksheet) -> list[str]:
     """
     warnings = []
     board_text = ((marksheet.board or "") + " " + (marksheet.examination or "")).upper()
-    is_class_12 = any(k in board_text for k in [
-        "CLASS - XII", "CLASS-XII", "CLASS XII", "CLASS 12", "CLASS-12",
-        "ISC", "INTERMEDIATE", "SENIOR SECONDARY", "SENIOR SCHOOL", "HSC", "12TH"
-    ])
+    is_class_12 = bool(re.search(r"\b(XII|12|12TH|ISC|INTERMEDIATE|SENIOR|HSC)\b", board_text))
 
     # In Class 12 / Intermediate, Physics, Chemistry, and Biology are distinct academic subjects,
     # NEVER component sub-papers of Science!
@@ -245,6 +251,10 @@ def reconcile_icse_subjects(marksheet: Marksheet) -> list[str]:
             s.theory = grade_val
             s.practical = None
             warnings.append(f"ICSE Layout: Grounded '{s.name}' total to {grade_val} from word grade '{s.grade}'")
+        elif s.theory is not None and s.practical is not None and s.total is not None and s.total == s.theory + s.practical and s.practical < 10.0 and s.theory >= 30.0:
+            s.total = s.theory
+            s.practical = None
+            warnings.append(f"ICSE Layout: Removed fictitious practical {s.practical} on '{s.name}', total set to {s.total}")
         elif s.total is not None and s.total <= 100.0:
             s.theory = s.total
             s.practical = None
@@ -272,6 +282,9 @@ def reconcile_icse_subjects(marksheet: Marksheet) -> list[str]:
                 s.total = s.theory
 
         cleaned_subjects.append(s)
+
+    if marksheet.student_info.roll_no and re.match(r"^(?:No\.?\s*)?([A-Z]{1,3}\s*\d{6,9})$", marksheet.student_info.roll_no.strip()):
+        warnings.append(f"Notice: '{marksheet.student_info.roll_no}' appears to be a certificate serial number. CISCE Roll No is the 7-digit Unique ID.")
 
     # If a parent subject was missing from the extraction but its sub-papers were extracted:
     for parent, sub_list in parent_sub_marks.items():
@@ -584,8 +597,22 @@ def reconcile_aggregate_results(marksheet: Marksheet) -> list[str]:
     else:
         sum_max = sum(s.max_marks or 100.0 for s in academic_subjs)
 
-    # 1. Total obtained reconciliation
+    # 1. Subject reconciliation against printed grand total if a single subject slipped
     curr_total = marksheet.result.total_obtained
+    if curr_total is not None and (curr_total - sum_obtained) in [5.0, 10.0, 20.0]:
+        diff = curr_total - sum_obtained
+        for s in academic_subjs:
+            if s.practical is not None and s.theory is not None and (s.theory == s.practical or (s.total and s.total in [50.0, 60.0, 70.0])):
+                s.theory += diff
+                s.total = s.theory + s.practical
+                sum_obtained += diff
+                warnings.append(
+                    f"{s.name}: Reconciled Theory by +{diff} to {s.theory} (Total {s.total}) "
+                    f"to match printed grand total {curr_total}"
+                )
+                break
+
+    # 2. Total obtained reconciliation
     if curr_total is None or curr_total > sum_max or (curr_total < sum_obtained * 0.4 and len(academic_subjs) >= 3):
         marksheet.result.total_obtained = sum_obtained
         warnings.append(

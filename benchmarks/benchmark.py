@@ -14,6 +14,9 @@ import sys
 import time
 from pathlib import Path
 
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from pipeline import prepare, extract, validate
 
 
@@ -26,7 +29,7 @@ def run(dataset_dir: str = "dataset"):
     # Find all images
     images = sorted(
         f for f in dataset.iterdir()
-        if f.suffix.lower() in (".jpg", ".jpeg", ".png")
+        if f.suffix.lower() in (".jpg", ".jpeg", ".png", ".pdf")
     )
 
     if not images:

@@ -88,10 +88,11 @@ CRITICAL EXTRACTION RULES:
      * Line 3: 'and Mr.' / 'एवं श्री' or 'Father's Name' / 'Father's / Guardian's Name' / 'पिता का नाम' followed by FATHER'S NAME (e.g. NAVEEN CHANDRA PATHAK, BALWANT SINGH RANA, RAJENDRA SINGH, SANGAMESH).
    - WARNING: Mother's Name and Father's Name are TWO DIFFERENT PEOPLE. Mother is Mrs./श्रीमती and Father is Mr./श्री. NEVER set Mother's name equal to Father's name!
    - WARNING: NEVER confuse Candidate Name with Father's Name! A candidate cannot have the identical name as their father.
-   - Roll Number:
-     * Exact full digits under "Roll No." / "Register No." / "Reg. No." / "अनुक्रमांक".
-     * CBSE Roll Numbers are ALWAYS exactly 8 digits (e.g. 25109039, 25114139, 25115560, 25107204, 25130945). Count all 8 digits carefully; NEVER drop interior zeros (e.g. extract 25109039, NOT 2510939).
-     * For Karnataka SSLC, extract the number under "Register No." (e.g. 20140295230), NOT the barcode serial number.
+   - Roll Number / Candidate ID:
+     * ICSE & ISC (CISCE Class 10 & 12): The candidate's Roll Number is EXCLUSIVELY the 7-digit numeric "Unique ID" (e.g. "7721300", "7396962", "7224142") or Index No. (e.g. "2241966/014", "2238170/061") printed in the candidate information section. Read all 7 digits of "Unique ID" carefully into "roll_no". NEVER extract the document/certificate serial number at the top left/right (e.g. "No. BH 10075963", "BH 10075963", "No. BG 90094366", "BG 90094366", "No. TT 40195250") as roll_no!
+     * CBSE: CBSE Roll Numbers are ALWAYS exactly 8 digits under "Roll No." (e.g. 25109039, 25114139, 25115560, 25107204, 25130945). Count all 8 digits carefully; NEVER drop interior zeros (e.g. extract 25109039, NOT 2510939).
+     * Karnataka SSLC: Extract the number under "Register No." (e.g. 20140295230), NOT the barcode serial number.
+     * State Boards (UBSE, UPMSP, BSEH): Exact full digits under "Roll No." / "Register No." / "Reg. No." / "अनुक्रमांक".
    - Date of Birth (DOB): Format DD-MM-YYYY if present, or null. Cross-check numeric digits with the date in words printed immediately beside it (e.g. "21ST MAY TWO THOUSAND FOUR" -> "21-05-2004", not 25; "06TH OCTOBER" -> "06-10-2004", "31-10-1998").
    - School / Institution: Full school name and code if visible.
 
@@ -130,14 +131,14 @@ CRITICAL EXTRACTION RULES:
      * "max_marks": "125" for Karnataka First Language, "100" for all other subjects.
      * "grade": grade or class if present (e.g. "B+", "A+", "DISTINCTION").
 
-   - ICSE (CLASS 10 CISCE):
-     * Extract ONLY the 6 MAIN academic subjects: 'ENGLISH', 'HINDI' (or second language), 'HISTORY, CIVICS & GEOGRAPHY', 'MATHEMATICS', 'SCIENCE', and the elective/6th subject (e.g. 'COMPUTER APPLICATIONS', 'PHYSICAL EDUCATION', 'COMMERCIAL STUDIES').
-     * In Class 10 ICSE, DO NOT extract component papers ('ENGLISH LANGUAGE', 'LITERATURE IN ENGLISH', 'HISTORY & CIVICS', 'GEOGRAPHY', 'PHYSICS', 'CHEMISTRY', 'BIOLOGY') as separate rows.
-     * For ICSE parent subjects, the total marks are printed under 'PERCENTAGE MARKS' column (e.g. '89 EIGHT NINE' -> 89, '86 EIGHT SIX' -> 86, '80 EIGHT ZERO' -> 80).
-     * "theory": null, "practical": null, "total": percentage_marks_str, "max_marks": "100".
-
-   - ISC & SENIOR SECONDARY (CLASS 12 ALL BOARDS):
-     * In Class 12, PHYSICS, CHEMISTRY, BIOLOGY, and MATHEMATICS are INDEPENDENT academic subjects (each out of 100 max marks). DO NOT merge them into Science.
+   - CISCE BOARDS (ICSE CLASS 10 & ISC CLASS 12):
+     * CISCE marksheets have ONLY ONE numeric marks column titled 'Percentage Marks' (e.g. '74 SEVEN FOUR', '50 FIVE ZERO', '47 FOUR SEVEN', '79 SEVEN NINE', '89 EIGHT NINE').
+     * The 2-digit number (74, 50, 47, 79, 89) is the subject score. The words beside it ('SEVEN FOUR', 'FIVE ZERO') are just the score written in words.
+     * NEVER treat words as practical marks or create fictitious practicals!
+     * For every CISCE / ICSE / ISC subject:
+       "theory": null, "practical": null, "total": percentage_marks_str, "max_marks": "100", "grade": null (or letter grade).
+     * Class 10 ICSE: Extract only the 6 main parent subjects (ENGLISH, HINDI, HISTORY CIVICS & GEOGRAPHY, MATHEMATICS, SCIENCE, and 6th elective). Do not extract component sub-papers.
+     * Class 12 ISC: Extract all external examination subjects (ENGLISH, MATHEMATICS, PHYSICS, CHEMISTRY, BIOLOGY, PHYSICAL EDUCATION, etc.) as individual subjects.
 
    - CBSE CCE / GRADING-ONLY (NO NUMERIC MARKS):
      * If the marksheet displays ONLY letter grades (e.g. "A1", "A2", "B1") and Grade Points (e.g. "10.0", "9.0") with NO numeric marks out of 100:
