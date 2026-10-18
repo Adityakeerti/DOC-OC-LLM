@@ -11,6 +11,7 @@ Engineered with:
   3. Automatic leading-zero and JSON formatting sanitation
 """
 
+import os
 import base64
 import io
 import json
@@ -22,8 +23,9 @@ from PIL import Image
 
 # ── Config ────────────────────────────────────────────────────────────────────
 
-API_URL = "http://localhost:8080/v1/chat/completions"
-TIMEOUT = 120.0  # seconds
+API_URL = os.environ.get("VLM_API_URL", "http://localhost:8080/v1/chat/completions")
+API_KEY = os.environ.get("VLM_API_KEY", "")
+TIMEOUT = float(os.environ.get("VLM_TIMEOUT", "120.0"))  # seconds
 
 
 # ── JSON Schema Constraint ────────────────────────────────────────────────────
@@ -232,8 +234,12 @@ def extract(image: Image.Image) -> dict:
         "max_tokens": 4096,
     }
 
+    headers = {}
+    if API_KEY:
+        headers["Authorization"] = f"Bearer {API_KEY}"
+
     try:
-        response = httpx.post(API_URL, json=payload, timeout=TIMEOUT)
+        response = httpx.post(API_URL, json=payload, headers=headers, timeout=TIMEOUT)
         response.raise_for_status()
     except httpx.ConnectError:
         raise RuntimeError(

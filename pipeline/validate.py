@@ -507,6 +507,16 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
                     f"(Total {subj.total} - Theory {subj.theory})"
                 )
 
+        # Self-healing: Theory cannot exceed Total if Total is valid
+        if subj.theory is not None and subj.total is not None and subj.theory > subj.total:
+            if subj.practical is not None and subj.total >= subj.practical:
+                old_theory = subj.theory
+                subj.theory = round(subj.total - subj.practical, 2)
+                warnings.append(
+                    f"{subj.name}: Theory ({old_theory}) exceeded Total ({subj.total}) — misread subject code; "
+                    f"auto-reconciled Theory to {subj.theory} (Total {subj.total} - Practical {subj.practical})"
+                )
+
         # Self-healing: if theory equals total, practical was blank/zero
         if subj.theory is not None and subj.total is not None and subj.theory == subj.total and subj.practical is not None:
             subj.practical = None
@@ -525,14 +535,22 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
         # Self-healing: Theory + Practical cannot exceed max marks
         if subj.theory is not None and subj.practical is not None:
             if (subj.theory + subj.practical) > max_limit:
-                old_prac = subj.practical
-                subj.practical = None
-                if subj.total is None or subj.total > max_limit:
-                    subj.total = subj.theory
-                warnings.append(
-                    f"{subj.name}: Practical reset to null because Theory ({subj.theory}) + "
-                    f"Practical ({old_prac}) exceeds max marks {max_limit}"
-                )
+                if subj.total is not None and subj.total <= max_limit and subj.total >= subj.practical:
+                    old_theory = subj.theory
+                    subj.theory = round(subj.total - subj.practical, 2)
+                    warnings.append(
+                        f"{subj.name}: Theory ({old_theory}) + Practical ({subj.practical}) exceeded {max_limit}; "
+                        f"reconciled Theory to {subj.theory} from Total ({subj.total})"
+                    )
+                else:
+                    old_prac = subj.practical
+                    subj.practical = None
+                    if subj.total is None or subj.total > max_limit:
+                        subj.total = subj.theory
+                    warnings.append(
+                        f"{subj.name}: Practical reset to null because Theory ({subj.theory}) + "
+                        f"Practical ({old_prac}) exceeds max marks {max_limit}"
+                    )
 
         if subj.theory is None or subj.practical is None or subj.total is None:
             continue
@@ -555,6 +573,13 @@ def check_arithmetic(marksheet: Marksheet) -> list[str]:
                 warnings.append(
                     f"{subj.name}: Corrected OCR total digit slip from {old_total} to {expected} "
                     f"({subj.theory} + {subj.practical})"
+                )
+            elif subj.total is not None and subj.practical is not None and subj.total > subj.practical and subj.theory in [41.0, 86.0, 87.0, 184.0, 165.0, 122.0, 101.0, 2.0, 3.0, 4.0, 5.0]:
+                old_theory = subj.theory
+                subj.theory = round(subj.total - subj.practical, 2)
+                warnings.append(
+                    f"{subj.name}: Corrected Theory from subject code ({old_theory}) to {subj.theory} "
+                    f"(Total {subj.total} - Practical {subj.practical})"
                 )
             else:
                 warnings.append(

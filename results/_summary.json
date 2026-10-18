@@ -1,0 +1,30 @@
+[
+  {
+    "file": "cbse.pdf",
+    "status": "ok",
+    "board": "Central Board of Secondary Education",
+    "subjects": 6,
+    "time": 8.13
+  },
+  {
+    "file": "icse.jpg",
+    "status": "ok",
+    "board": "Council for the Indian School Certificate Examinations, New Delhi",
+    "subjects": 5,
+    "time": 6.32
+  },
+  {
+    "file": "uk.pdf",
+    "status": "ok",
+    "board": "Board of School Education Uttarakhand",
+    "subjects": 6,
+    "time": 9.13
+  },
+  {
+    "file": "uk2.pdf",
+    "status": "ok",
+    "board": "Board of School Education Uttarakhand",
+    "subjects": 5,
+    "time": 6.93
+  }
+]

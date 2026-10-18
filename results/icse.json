@@ -1,0 +1,70 @@
+{
+  "source": "icse.jpg",
+  "data": {
+    "board": "Council for the Indian School Certificate Examinations, New Delhi",
+    "examination": "Class XII",
+    "student_info": {
+      "name": "ABHINAV KUMAR",
+      "roll_no": "7721300",
+      "father_name": "DHARMENDRKA KUMAR",
+      "mother_name": "MAMTA RANI",
+      "school_name": "WILSONIA COLLEGE, MORADABAD",
+      "dob": null
+    },
+    "subjects": [
+      {
+        "name": "ENGLISH",
+        "theory": 74.0,
+        "practical": null,
+        "total": 74.0,
+        "max_marks": 100.0,
+        "grade": null
+      },
+      {
+        "name": "MATHEMATICS",
+        "theory": 50.0,
+        "practical": null,
+        "total": 50.0,
+        "max_marks": 100.0,
+        "grade": null
+      },
+      {
+        "name": "PHYSICS",
+        "theory": 47.0,
+        "practical": null,
+        "total": 47.0,
+        "max_marks": 100.0,
+        "grade": null
+      },
+      {
+        "name": "CHEMISTRY",
+        "theory": 47.0,
+        "practical": null,
+        "total": 47.0,
+        "max_marks": 100.0,
+        "grade": null
+      },
+      {
+        "name": "PHYSICAL EDUCATION",
+        "theory": 79.0,
+        "practical": null,
+        "total": 79.0,
+        "max_marks": 100.0,
+        "grade": null
+      }
+    ],
+    "result": {
+      "total_obtained": 297.0,
+      "maximum_marks": 500.0,
+      "percentage": "59.4%",
+      "status": "PASS"
+    }
+  },
+  "warnings": [
+    "Auto-reconciled grand total obtained to 297.0 from 5 academic subjects"
+  ],
+  "timing": {
+    "preprocess": 0.15,
+    "extract": 6.32
+  }
+}

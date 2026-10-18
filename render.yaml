@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: doc-oc-v2
+    runtime: docker
+    plan: free
+    region: oregon
+    dockerfilePath: Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: VLM_API_URL
+        sync: false
+      - key: VLM_API_KEY
+        sync: false

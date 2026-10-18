@@ -8,6 +8,8 @@ Run with:  python app.py
 """
 
 import os
+import io
+import base64
 import time
 import tempfile
 import json
@@ -80,6 +82,10 @@ dataset_dir = Path(__file__).resolve().parent.parent / "dataset"
 if dataset_dir.exists():
     app.mount("/dataset", StaticFiles(directory=str(dataset_dir)), name="dataset")
 
+frontend_assets = Path(__file__).resolve().parent.parent / "frontend" / "dist" / "assets"
+if frontend_assets.exists():
+    app.mount("/assets", StaticFiles(directory=str(frontend_assets)), name="frontend_assets")
+
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
@@ -123,6 +129,12 @@ async def process_marksheet(file: UploadFile = File(...)):
             "validate": round(t_validate, 2),
         }
 
+        # Generate high-resolution web-ready preview data URL (works for PDFs and photos alike)
+        preview_buffer = io.BytesIO()
+        image.save(preview_buffer, format="JPEG", quality=85)
+        encoded_preview = base64.b64encode(preview_buffer.getvalue()).decode("utf-8")
+        preview_data_url = f"data:image/jpeg;base64,{encoded_preview}"
+
         # Save to log.txt
         log_run(run_no, file.filename, result_dict=result_data, warnings=warnings, timing=timing_data)
 
@@ -130,6 +142,7 @@ async def process_marksheet(file: UploadFile = File(...)):
             "data": result_data,
             "warnings": warnings,
             "timing": timing_data,
+            "image_preview": preview_data_url,
         })
 
     except RuntimeError as e:
@@ -142,9 +155,36 @@ async def process_marksheet(file: UploadFile = File(...)):
         os.unlink(tmp.name)
 
 
+@app.post("/submit")
+async def submit_marksheets(payload: dict):
+    """Save submitted student marksheet batch."""
+    run_no = get_next_run_number()
+    marksheets = payload.get("marksheets", [])
+    log_run(run_no, f"BATCH-SUBMIT ({len(marksheets)} documents)", result_dict=payload)
+    return {"status": "success", "count": len(marksheets), "run": run_no}
+
+
+@app.get("/samples")
+async def list_samples():
+    """List preloaded multi-board sample documents."""
+    return [
+        {"name": "CBSE 10th Standard", "board": "CBSE", "file": "cbse_border_1.png", "url": "/dataset/cbse_border_1.png"},
+        {"name": "CBSE 12th Senior Secondary", "board": "CBSE", "file": "12_3.jpg", "url": "/dataset/12_3.jpg"},
+        {"name": "ICSE 10th Certificate", "board": "ICSE", "file": "icse_green.png", "url": "/dataset/icse_green.png"},
+        {"name": "ISC 12th Certificate", "board": "CISCE", "file": "10_1.jpg", "url": "/dataset/10_1.jpg"},
+        {"name": "UP Board 10th (UPMSP Pink)", "board": "UPMSP", "file": "up_board_10th.png", "url": "/dataset/up_board_10th.png"},
+        {"name": "BSEH Haryana 10th (Green)", "board": "BSEH", "file": "haryana_10th.png", "url": "/dataset/haryana_10th.png"},
+        {"name": "BSEH Haryana 12th", "board": "BSEH", "file": "haryana_12th.png", "url": "/dataset/haryana_12th.png"},
+        {"name": "UBSE Uttarakhand 10th", "board": "UBSE", "file": "state_sample_ms7.jpg", "url": "/dataset/state_sample_ms7.jpg"},
+    ]
+
+
 @app.get("/")
 async def serve_ui():
-    """Serve the split-screen test UI."""
+    """Serve the compiled React frontend if built, otherwise split-screen test UI."""
+    dist_index = Path(__file__).resolve().parent.parent / "frontend" / "dist" / "index.html"
+    if dist_index.exists():
+        return FileResponse(dist_index)
     ui_path = Path(__file__).resolve().parent.parent / "UI.html"
     if ui_path.exists():
         return FileResponse(ui_path)

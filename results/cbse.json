@@ -1,0 +1,78 @@
+{
+  "source": "cbse.pdf",
+  "data": {
+    "board": "Central Board of Secondary Education",
+    "examination": "Secondary School Examination",
+    "student_info": {
+      "name": "ADITYAEERTI",
+      "roll_no": "22164964",
+      "father_name": "SHYAMA CHARAN",
+      "mother_name": "SANGEETA SHARMA",
+      "school_name": "DAV PUB SCH NAYATOLA KESHOPUR JAMALPUR MUNGER BR",
+      "dob": "20-09-2004"
+    },
+    "subjects": [
+      {
+        "name": "ENGLISH LANG & LIT.",
+        "theory": 70.0,
+        "practical": 20.0,
+        "total": 90.0,
+        "max_marks": 100.0,
+        "grade": "A2"
+      },
+      {
+        "name": "SANSKRIT",
+        "theory": 71.0,
+        "practical": 20.0,
+        "total": 91.0,
+        "max_marks": 100.0,
+        "grade": "A2"
+      },
+      {
+        "name": "MATHEMATICS STANDARD",
+        "theory": 60.0,
+        "practical": 20.0,
+        "total": 80.0,
+        "max_marks": 100.0,
+        "grade": "B1"
+      },
+      {
+        "name": "SCIENCE",
+        "theory": 49.0,
+        "practical": 20.0,
+        "total": 69.0,
+        "max_marks": 100.0,
+        "grade": "B1"
+      },
+      {
+        "name": "SOCIAL SCIENCE",
+        "theory": 69.0,
+        "practical": 20.0,
+        "total": 89.0,
+        "max_marks": 100.0,
+        "grade": "A2"
+      },
+      {
+        "name": "COMPUTER APPLICATIONS",
+        "theory": 26.0,
+        "practical": 70.0,
+        "total": 96.0,
+        "max_marks": 100.0,
+        "grade": "A2"
+      }
+    ],
+    "result": {
+      "total_obtained": 515.0,
+      "maximum_marks": 600.0,
+      "percentage": "85.83%",
+      "status": "PASS"
+    }
+  },
+  "warnings": [
+    "Auto-reconciled grand total obtained to 515.0 from 6 academic subjects"
+  ],
+  "timing": {
+    "preprocess": 0.15,
+    "extract": 8.13
+  }
+}

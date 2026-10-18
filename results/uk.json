@@ -1,0 +1,82 @@
+{
+  "source": "uk.pdf",
+  "data": {
+    "board": "Board of School Education Uttarakhand",
+    "examination": "HIGH SCHOOL EXAMINATION-2021",
+    "student_info": {
+      "name": "DIVYANSH CHAUHAN",
+      "roll_no": "21123316",
+      "father_name": "MAHESH SINGH",
+      "mother_name": "SARIKA RAJPUT",
+      "school_name": "R.L.S. CHAUHAN S.V.M.I.J. ASPUR.",
+      "dob": "22-08-2006"
+    },
+    "subjects": [
+      {
+        "name": "HINDI",
+        "theory": 75.0,
+        "practical": null,
+        "total": 75.0,
+        "max_marks": 100.0,
+        "grade": "A2"
+      },
+      {
+        "name": "ENGLISH",
+        "theory": 83.0,
+        "practical": null,
+        "total": 83.0,
+        "max_marks": 100.0,
+        "grade": "A1"
+      },
+      {
+        "name": "MATHEMATICS",
+        "theory": 76.0,
+        "practical": 20.0,
+        "total": 96.0,
+        "max_marks": 100.0,
+        "grade": "A1"
+      },
+      {
+        "name": "SCIENCE",
+        "theory": 70.0,
+        "practical": null,
+        "total": 70.0,
+        "max_marks": 160.0,
+        "grade": "A1"
+      },
+      {
+        "name": "SOCIAL SCIENCE",
+        "theory": 64.0,
+        "practical": 20.0,
+        "total": 84.0,
+        "max_marks": 100.0,
+        "grade": "A1"
+      },
+      {
+        "name": "SANSKRIT",
+        "theory": 63.0,
+        "practical": null,
+        "total": 63.0,
+        "max_marks": 100.0,
+        "grade": "B2"
+      }
+    ],
+    "result": {
+      "total_obtained": 428.0,
+      "maximum_marks": 500.0,
+      "percentage": "85.6%",
+      "status": "PASS"
+    }
+  },
+  "warnings": [
+    "Filtered out non-academic/co-scholastic row: 'ADDITIONAL SUBJECT'",
+    "HINDI: Practical reset to null because Theory equals Practical (75.0)",
+    "ENGLISH: Practical reset to null because Theory equals Practical (83.0)",
+    "SCIENCE: Practical reset to null because Theory (70.0) + Practical (90.0) exceeds max marks 100.0",
+    "SANSKRIT: Practical reset to null because Theory equals Practical (63.0)"
+  ],
+  "timing": {
+    "preprocess": 0.08,
+    "extract": 9.13
+  }
+}
