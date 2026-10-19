@@ -1,7 +1,20 @@
-# DOC-OC v6 — Universal Indian Marksheet & Certificate Extractor
+---
+title: DOC-OC v2 Universal Marksheet Extractor
+emoji: 📑
+colorFrom: blue
+colorTo: green
+sdk: gradio
+sdk_version: "4.44.0"
+app_file: app.py
+pinned: false
+license: apache-2.0
+short_description: Spatial VLM Marksheet Extractor powered by Gemma-4-E2B
+---
+
+# DOC-OC v2 — Universal Indian Marksheet & Certificate Extractor
 
 **High-Performance Vision-Language Model Extraction Engine for Multi-Board Indian Academic Documents**  
-*Zero Cloud OCR APIs • Zero Regex • Zero Cost-Per-Page • 100% Offline GPU Inference*
+*Offline VLM Edge Architecture • Deterministic GBNF Schema • Self-Healing Arithmetic • Apache-2.0 License*
 
 ---
 
