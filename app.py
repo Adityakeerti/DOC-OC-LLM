@@ -1,12 +1,4 @@
-"""
-DOC-OC v2 — Server Entry Point (FastAPI + Hugging Face Gradio Runner)
-"""
-
-import os
-import uvicorn
-from api.app import app
-
-# ZeroGPU decorator support
+# ZeroGPU decorator support — MUST BE THE VERY FIRST IMPORT
 try:
     import spaces
 except ImportError:
@@ -17,12 +9,16 @@ except ImportError:
                 return lambda f: f
             return fn
 
+import os
+import uvicorn
+import gradio as gr
+from pipeline import extract, validate, prepare
+from api.app import app
+
 # Mount Gradio Blocks with an explicit @spaces.GPU function for ZeroGPU validation
 try:
-    import gradio as gr
-    from pipeline import extract, validate, prepare
-
     @spaces.GPU(duration=60)
+
     def gradio_extract(image_input):
         if image_input is None:
             return {"error": "No marksheet image provided"}
