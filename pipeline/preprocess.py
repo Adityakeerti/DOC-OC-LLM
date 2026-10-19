@@ -67,16 +67,19 @@ def resize(image: Image.Image, max_dim: int = MAX_DIMENSION) -> Image.Image:
 
 # ── Main Pipeline ─────────────────────────────────────────────────────────────
 
-def prepare(path: str) -> Image.Image:
+def prepare(input_data) -> Image.Image:
     """
-    Full preprocessing: load file → fix orientation → resize.
+    Full preprocessing: load file/image → fix orientation → resize.
 
     Args:
-        path: Path to image (JPG/PNG) or PDF file
+        input_data: Path to image/PDF file (str/Path) or PIL Image object
 
     Returns:
         Clean PIL Image ready for VLM extraction
     """
-    image = load_image(path)
-    image = resize(image)
-    return image
+    if isinstance(input_data, Image.Image):
+        image = ImageOps.exif_transpose(input_data).convert("RGB")
+    else:
+        image = load_image(str(input_data))
+    return resize(image)
+
