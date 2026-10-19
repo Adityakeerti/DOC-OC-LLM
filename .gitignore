@@ -33,3 +33,11 @@ DemoVideo/
 scratch/*.jpg
 scratch/*.png
 scratch/*.txt
+
+# Node Dependencies
+node_modules/
+frontend/node_modules/
+
+# Local raw datasets (prevent large binary commits)
+MainDataset/
+TestSamples/
