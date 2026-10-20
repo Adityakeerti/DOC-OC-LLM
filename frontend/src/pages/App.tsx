@@ -82,20 +82,48 @@ export default function App() {
     ]
 
     try {
-      const form = new FormData()
-      form.append('file', selectedFile)
+      let resJson: ExtractionResult
 
-      const response = await fetch(`${API_BASE}/process`, {
-        method: 'POST',
-        body: form,
-      })
+      // 1. If running on local server with FastAPI backend, use standard POST /process
+      if (
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        (import.meta as any).env?.VITE_USE_LOCAL_API === 'true'
+      ) {
+        const form = new FormData()
+        form.append('file', selectedFile)
 
-      if (!response.ok) {
-        const errJson = await response.json().catch(() => ({}))
-        throw new Error(errJson.detail || `Server responded with ${response.status}: ${response.statusText}`)
+        const response = await fetch(`${API_BASE}/process`, {
+          method: 'POST',
+          body: form,
+        })
+
+        if (!response.ok) {
+          const errJson = await response.json().catch(() => ({}))
+          throw new Error(errJson.detail || `Server responded with ${response.status}: ${response.statusText}`)
+        }
+
+        resJson = await response.json()
+      } else {
+        // 2. When deployed (e.g. Vercel), connect directly to the Hugging Face ZeroGPU Space!
+        const { Client } = await import('@gradio/client')
+        const spaceName = (import.meta as any).env?.VITE_HF_SPACE || 'adityacodes404/doc-oc-ai'
+        const client = await Client.connect(spaceName)
+        const result: any = await client.predict('/process', {
+          file_input: selectedFile,
+        })
+
+        const rawData = Array.isArray(result?.data) ? result.data[0] : result?.data
+        if (rawData?.status === 'error') {
+          throw new Error(rawData.error || 'Extraction failed on Hugging Face ZeroGPU engine.')
+        }
+
+        resJson = {
+          data: rawData?.data || rawData || {},
+          warnings: rawData?.warnings || [],
+          timing: rawData?.timing || {},
+        }
       }
-
-      const resJson: ExtractionResult = await response.json()
 
       // If backend returned high-res rasterized preview (especially for PDFs or auto-rotated photos), use it!
       if (resJson.image_preview) {
@@ -151,7 +179,10 @@ export default function App() {
     setLoading(true)
     setError(null)
     setResult(null)
-    const sampleUrl = `${API_BASE}/dataset/${filename}`
+    const sampleUrl =
+      window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? `${API_BASE}/dataset/${filename}`
+        : `/dataset/${filename}`
     setPreviewUrl(sampleUrl)
     setIsPdf(filename.toLowerCase().endsWith('.pdf'))
     try {

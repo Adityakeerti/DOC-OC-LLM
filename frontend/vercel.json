@@ -3,18 +3,6 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
-      "source": "/process",
-      "destination": "https://YOUR_BACKEND_URL.onrender.com/process"
-    },
-    {
-      "source": "/dataset/:path*",
-      "destination": "https://YOUR_BACKEND_URL.onrender.com/dataset/:path*"
-    },
-    {
-      "source": "/health",
-      "destination": "https://YOUR_BACKEND_URL.onrender.com/health"
-    },
-    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
