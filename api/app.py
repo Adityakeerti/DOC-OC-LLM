@@ -86,6 +86,10 @@ frontend_assets = Path(__file__).resolve().parent.parent / "frontend" / "dist" /
 if frontend_assets.exists():
     app.mount("/assets", StaticFiles(directory=str(frontend_assets)), name="frontend_assets")
 
+frontend_sample = Path(__file__).resolve().parent.parent / "frontend" / "dist" / "sample"
+if frontend_sample.exists():
+    app.mount("/sample", StaticFiles(directory=str(frontend_sample)), name="frontend_sample")
+
 
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
@@ -179,6 +183,7 @@ async def list_samples():
     ]
 
 
+@app.get("/")
 @app.get("/ui")
 @app.get("/app")
 async def serve_ui():
