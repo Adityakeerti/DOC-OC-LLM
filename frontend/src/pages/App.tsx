@@ -108,7 +108,8 @@ export default function App() {
         // 2. When deployed (e.g. Vercel), connect directly to the Hugging Face ZeroGPU Space!
         const { Client } = await import('@gradio/client')
         const spaceName = (import.meta as any).env?.VITE_HF_SPACE || 'adityacodes404/doc-oc-ai'
-        const client = await Client.connect(spaceName)
+        const hfToken = (import.meta as any).env?.VITE_HF_TOKEN
+        const client = await Client.connect(spaceName, hfToken ? { token: hfToken } : {})
         const result: any = await client.predict('/process', {
           file_input: selectedFile,
         })
