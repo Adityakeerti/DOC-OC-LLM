@@ -190,11 +190,12 @@ def clean_json_response(text: str) -> str:
 
 _INPROCESS_MODEL = None
 _INPROCESS_PROCESSOR = None
+_INIT_ERROR = None
 
 
 def init_inprocess_vlm():
     """Initialize in-process Qwen2.5-VL model on ZeroGPU CUDA context at startup."""
-    global _INPROCESS_MODEL, _INPROCESS_PROCESSOR
+    global _INPROCESS_MODEL, _INPROCESS_PROCESSOR, _INIT_ERROR
     if _INPROCESS_MODEL is not None and _INPROCESS_PROCESSOR is not None:
         return _INPROCESS_MODEL, _INPROCESS_PROCESSOR
 
@@ -212,19 +213,22 @@ def init_inprocess_vlm():
         print("✅ In-process ZeroGPU VLM initialized successfully!")
         return _INPROCESS_MODEL, _INPROCESS_PROCESSOR
     except Exception as e:
-        print(f"ℹ️ In-process VLM initialization skipped: {e}")
+        _INIT_ERROR = f"{type(e).__name__}: {e}"
+        print(f"⚠️ In-process VLM initialization error: {_INIT_ERROR}")
+        import traceback
+        traceback.print_exc()
         return None, None
 
 
 def extract_inprocess(image: Image.Image) -> dict:
     """Run direct in-process inference using Qwen2.5-VL on active ZeroGPU allocation."""
-    global _INPROCESS_MODEL, _INPROCESS_PROCESSOR
+    global _INPROCESS_MODEL, _INPROCESS_PROCESSOR, _INIT_ERROR
     if _INPROCESS_MODEL is None or _INPROCESS_PROCESSOR is None:
         init_inprocess_vlm()
 
     if _INPROCESS_MODEL is None or _INPROCESS_PROCESSOR is None:
         raise RuntimeError(
-            "In-process VLM engine is unavailable. Ensure transformers and torch are installed."
+            f"In-process ZeroGPU VLM is not ready. Init error: {_INIT_ERROR or 'Model weights not loaded'}"
         )
 
     import torch
@@ -343,10 +347,4 @@ def extract(image: Image.Image) -> dict:
         return json.loads(content)
     except (httpx.ConnectError, httpx.TimeoutException):
         # 3. If external API is unreachable, try in-process ZeroGPU inference
-        try:
-            return extract_inprocess(image)
-        except Exception:
-            raise RuntimeError(
-                "Cannot connect to VLM server. "
-                "Start it first: ./start_server.sh (or run in Hugging Face ZeroGPU environment)."
-            )
+        return extract_inprocess(image)
