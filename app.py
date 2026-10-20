@@ -10,14 +10,16 @@ except ImportError:
             return fn
 
 import os
-import uvicorn
 import gradio as gr
-from fastapi.responses import RedirectResponse
 from pipeline import extract, validate, prepare
-from api.app import app
+from pipeline.extract import init_inprocess_vlm
+
+# Preload in-process VLM at module level for ZeroGPU CUDA context registration
+if os.environ.get("SPACE_ID") or os.environ.get("SPACES_ZERO_GPU"):
+    init_inprocess_vlm()
 
 
-@spaces.GPU(duration=60)
+@spaces.GPU(duration=120)
 def process_marksheet_ui(file_input):
     if file_input is None:
         return {"error": "Please select or upload a marksheet file."}

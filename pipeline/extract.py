@@ -186,23 +186,120 @@ def clean_json_response(text: str) -> str:
     return text
 
 
+# ── In-Process ZeroGPU VLM Engine ─────────────────────────────────────────────
+
+_INPROCESS_MODEL = None
+_INPROCESS_PROCESSOR = None
+
+
+def init_inprocess_vlm():
+    """Initialize in-process Qwen2.5-VL model on ZeroGPU CUDA context at startup."""
+    global _INPROCESS_MODEL, _INPROCESS_PROCESSOR
+    if _INPROCESS_MODEL is not None and _INPROCESS_PROCESSOR is not None:
+        return _INPROCESS_MODEL, _INPROCESS_PROCESSOR
+
+    try:
+        import torch
+        from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+
+        model_id = os.environ.get("VLM_MODEL_ID", "Qwen/Qwen2.5-VL-3B-Instruct")
+        print(f"📦 Preloading in-process VLM ({model_id}) on ZeroGPU...")
+        _INPROCESS_PROCESSOR = AutoProcessor.from_pretrained(model_id)
+        _INPROCESS_MODEL = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+            model_id,
+            torch_dtype=torch.bfloat16,
+        ).to("cuda")
+        print("✅ In-process ZeroGPU VLM initialized successfully!")
+        return _INPROCESS_MODEL, _INPROCESS_PROCESSOR
+    except Exception as e:
+        print(f"ℹ️ In-process VLM initialization skipped: {e}")
+        return None, None
+
+
+def extract_inprocess(image: Image.Image) -> dict:
+    """Run direct in-process inference using Qwen2.5-VL on active ZeroGPU allocation."""
+    global _INPROCESS_MODEL, _INPROCESS_PROCESSOR
+    if _INPROCESS_MODEL is None or _INPROCESS_PROCESSOR is None:
+        init_inprocess_vlm()
+
+    if _INPROCESS_MODEL is None or _INPROCESS_PROCESSOR is None:
+        raise RuntimeError(
+            "In-process VLM engine is unavailable. Ensure transformers and torch are installed."
+        )
+
+    import torch
+    from qwen_vl_utils import process_vision_info
+
+    messages = [
+        {
+            "role": "system",
+            "content": f"{SYSTEM_PROMPT}\n\nSTRICT JSON SCHEMA:\n{json.dumps(MARKSHEET_SCHEMA)}",
+        },
+        {
+            "role": "user",
+            "content": [
+                {"type": "image", "image": image},
+                {
+                    "type": "text",
+                    "text": f"{USER_PROMPT}\nOutput RAW JSON only, starting with '{{' and ending with '}}'. Do not include markdown or reasoning.",
+                },
+            ],
+        },
+    ]
+
+    text = _INPROCESS_PROCESSOR.apply_chat_template(
+        messages, tokenize=False, add_generation_prompt=True
+    )
+    image_inputs, video_inputs = process_vision_info(messages)
+    inputs = _INPROCESS_PROCESSOR(
+        text=[text],
+        images=image_inputs,
+        videos=video_inputs,
+        padding=True,
+        return_tensors="pt",
+    ).to("cuda")
+
+    with torch.no_grad():
+        generated_ids = _INPROCESS_MODEL.generate(
+            **inputs,
+            max_new_tokens=2048,
+            temperature=0.05,
+            do_sample=False,
+        )
+
+    generated_ids_trimmed = [
+        out_ids[len(in_ids) :]
+        for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
+    ]
+    output_text = _INPROCESS_PROCESSOR.batch_decode(
+        generated_ids_trimmed,
+        skip_special_tokens=True,
+        clean_up_tokenization_spaces=True,
+    )[0]
+
+    content = clean_json_response(output_text)
+    try:
+        return json.loads(content)
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"VLM returned invalid JSON: {e}\nRaw: {output_text[:500]}")
+
+
 # ── Main Function ─────────────────────────────────────────────────────────────
 
 def extract(image: Image.Image) -> dict:
     """
-    Send a marksheet image to the local VLM and get structured data back.
-
-    Args:
-        image: Preprocessed PIL Image of the marksheet
-
-    Returns:
-        dict with keys: board, student_info, subjects, result
-
-    Raises:
-        RuntimeError: If the VLM is unreachable or returns invalid JSON
+    Extract structured marksheet data from image.
+    
+    1. If in-process model is active (ZeroGPU Space), uses native CUDA inference.
+    2. Otherwise queries external OpenAI-compatible endpoint (local llama-server).
+    3. Falls back gracefully between both modes.
     """
-    b64 = image_to_base64(image)
+    # 1. Prefer in-process model if already loaded (ZeroGPU cloud environment)
+    if _INPROCESS_MODEL is not None:
+        return extract_inprocess(image)
 
+    # 2. Try HTTP API (local llama-server or remote VLM_API_URL)
+    b64 = image_to_base64(image)
     payload = {
         "messages": [
             {
@@ -228,7 +325,7 @@ def extract(image: Image.Image) -> dict:
                 "name": "marksheet",
                 "strict": True,
                 "schema": MARKSHEET_SCHEMA,
-            }
+            },
         },
         "temperature": 0.05,
         "max_tokens": 4096,
@@ -241,16 +338,15 @@ def extract(image: Image.Image) -> dict:
     try:
         response = httpx.post(API_URL, json=payload, headers=headers, timeout=TIMEOUT)
         response.raise_for_status()
-    except httpx.ConnectError:
-        raise RuntimeError(
-            "Cannot connect to VLM server. "
-            "Start it first: ./start_server.sh"
-        )
-
-    content = response.json()["choices"][0]["message"]["content"]
-    content = clean_json_response(content)
-
-    try:
+        content = response.json()["choices"][0]["message"]["content"]
+        content = clean_json_response(content)
         return json.loads(content)
-    except json.JSONDecodeError as e:
-        raise RuntimeError(f"VLM returned invalid JSON: {e}\nRaw: {content[:500]}")
+    except (httpx.ConnectError, httpx.TimeoutException):
+        # 3. If external API is unreachable, try in-process ZeroGPU inference
+        try:
+            return extract_inprocess(image)
+        except Exception:
+            raise RuntimeError(
+                "Cannot connect to VLM server. "
+                "Start it first: ./start_server.sh (or run in Hugging Face ZeroGPU environment)."
+            )

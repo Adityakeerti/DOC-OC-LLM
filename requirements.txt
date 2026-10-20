@@ -8,5 +8,8 @@ python-multipart>=0.0.18
 huggingface_hub>=0.26.0
 gradio>=5.0.0
 spaces
+transformers>=4.49.0
+accelerate>=0.26.0
+qwen-vl-utils
 
 
