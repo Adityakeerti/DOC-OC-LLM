@@ -32,12 +32,12 @@ def gradio_extract(image_input):
         return {"error": str(e)}
 
 
-with gr.Blocks(title="DOC-OC v2 Universal Marksheet Engine") as demo:
-    gr.Markdown("# DOC-OC v2 — Universal Marksheet Extraction Engine")
+with gr.Blocks(title="DOC-OC v2 Universal Marksheet Engine", theme=gr.themes.Soft()) as demo:
+    gr.Markdown("# 📑 DOC-OC v2 — Universal Marksheet Extraction Engine")
     gr.Markdown(
-        "⚡ **Production Web App**: Running actively at root [**/**](/) with high-fidelity side-by-side verification.\n\n"
+        "⚡ **Production React Dashboard**: Open full workspace at [**/ui**](/ui) or [**/app**](/app).\n\n"
         "📖 **Interactive Swagger Docs**: Available at [**/docs**](/docs).\n\n"
-        "🧪 **Interactive ZeroGPU Runner**:"
+        "🧪 **ZeroGPU Live Extractor** (Powered by Gemma-4-E2B):"
     )
     with gr.Row():
         with gr.Column():
@@ -51,8 +51,9 @@ with gr.Blocks(title="DOC-OC v2 Universal Marksheet Engine") as demo:
 # MANDATORY FOR ZEROGPU: Explicitly enable Gradio concurrency queue before mounting
 demo.queue(default_concurrency_limit=None)
 
-# Mount Gradio onto the FastAPI app
-app = gr.mount_gradio_app(app, demo, path="/gradio")
+# Mount Gradio at root path "/" so ZeroGPU supervisor scans /config cleanly
+app = gr.mount_gradio_app(app, demo, path="/")
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 7860))

@@ -179,7 +179,8 @@ async def list_samples():
     ]
 
 
-@app.get("/")
+@app.get("/ui")
+@app.get("/app")
 async def serve_ui():
     """Serve the compiled React frontend if built, otherwise split-screen test UI."""
     dist_index = Path(__file__).resolve().parent.parent / "frontend" / "dist" / "index.html"
@@ -189,6 +190,7 @@ async def serve_ui():
     if ui_path.exists():
         return FileResponse(ui_path)
     return JSONResponse({"message": "DOC-OC v6 API running"})
+
 
 
 @app.get("/health")
