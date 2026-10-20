@@ -9,9 +9,21 @@ except ImportError:
                 return lambda f: f
             return fn
 
-import os
 import gradio as gr
+
+try:
+    import gradio_client.utils
+    _orig_get_type = gradio_client.utils.get_type
+    def _safe_get_type(schema):
+        if isinstance(schema, bool):
+            return "boolean"
+        return _orig_get_type(schema)
+    gradio_client.utils.get_type = _safe_get_type
+except Exception as e:
+    print(f"gradio_client patch notice: {e}")
+
 from pipeline import extract, validate, prepare
+
 
 
 @spaces.GPU(duration=60)
