@@ -194,23 +194,36 @@ _INIT_ERROR = None
 
 
 def init_inprocess_vlm():
-    """Initialize in-process Qwen2.5-VL model on ZeroGPU CUDA context at startup."""
+    """Initialize in-process Google Gemma-4-E2B VLM on ZeroGPU CUDA context at startup."""
     global _INPROCESS_MODEL, _INPROCESS_PROCESSOR, _INIT_ERROR
     if _INPROCESS_MODEL is not None and _INPROCESS_PROCESSOR is not None:
         return _INPROCESS_MODEL, _INPROCESS_PROCESSOR
 
     try:
         import torch
-        from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor
+        from transformers import AutoProcessor
 
-        model_id = os.environ.get("VLM_MODEL_ID", "Qwen/Qwen2.5-VL-3B-Instruct")
+        model_id = os.environ.get("VLM_MODEL_ID", "google/gemma-4-E2B-it")
+        hf_token = os.environ.get("HF_TOKEN") or None
         print(f"📦 Preloading in-process VLM ({model_id}) on ZeroGPU...")
-        _INPROCESS_PROCESSOR = AutoProcessor.from_pretrained(model_id)
-        _INPROCESS_MODEL = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-            model_id,
-            torch_dtype=torch.bfloat16,
-        ).to("cuda")
-        print("✅ In-process ZeroGPU VLM initialized successfully!")
+        _INPROCESS_PROCESSOR = AutoProcessor.from_pretrained(model_id, token=hf_token)
+
+        try:
+            from transformers import AutoModelForMultimodalLM
+            _INPROCESS_MODEL = AutoModelForMultimodalLM.from_pretrained(
+                model_id,
+                torch_dtype=torch.bfloat16,
+                token=hf_token,
+            ).to("cuda")
+        except Exception:
+            from transformers import AutoModelForImageTextToText
+            _INPROCESS_MODEL = AutoModelForImageTextToText.from_pretrained(
+                model_id,
+                torch_dtype=torch.bfloat16,
+                token=hf_token,
+            ).to("cuda")
+
+        print("✅ In-process Gemma-4-E2B VLM initialized successfully!")
         return _INPROCESS_MODEL, _INPROCESS_PROCESSOR
     except Exception as e:
         _INIT_ERROR = f"{type(e).__name__}: {e}"
@@ -221,47 +234,50 @@ def init_inprocess_vlm():
 
 
 def extract_inprocess(image: Image.Image) -> dict:
-    """Run direct in-process inference using Qwen2.5-VL on active ZeroGPU allocation."""
+    """Run direct in-process inference using Google Gemma-4-E2B on active ZeroGPU allocation."""
     global _INPROCESS_MODEL, _INPROCESS_PROCESSOR, _INIT_ERROR
     if _INPROCESS_MODEL is None or _INPROCESS_PROCESSOR is None:
         init_inprocess_vlm()
 
     if _INPROCESS_MODEL is None or _INPROCESS_PROCESSOR is None:
         raise RuntimeError(
-            f"In-process ZeroGPU VLM is not ready. Init error: {_INIT_ERROR or 'Model weights not loaded'}"
+            f"In-process ZeroGPU Gemma-4-E2B is not ready. Init error: {_INIT_ERROR or 'Model weights not loaded'}"
         )
 
     import torch
-    from qwen_vl_utils import process_vision_info
+
+    prompt_text = (
+        f"{SYSTEM_PROMPT}\n\nSTRICT JSON SCHEMA:\n{json.dumps(MARKSHEET_SCHEMA)}\n\n"
+        f"{USER_PROMPT}\nOutput RAW JSON only, starting with '{{' and ending with '}}'. Do not output markdown code fences or reasoning traces."
+    )
 
     messages = [
-        {
-            "role": "system",
-            "content": f"{SYSTEM_PROMPT}\n\nSTRICT JSON SCHEMA:\n{json.dumps(MARKSHEET_SCHEMA)}",
-        },
         {
             "role": "user",
             "content": [
                 {"type": "image", "image": image},
-                {
-                    "type": "text",
-                    "text": f"{USER_PROMPT}\nOutput RAW JSON only, starting with '{{' and ending with '}}'. Do not include markdown or reasoning.",
-                },
+                {"type": "text", "text": prompt_text},
             ],
         },
     ]
 
-    text = _INPROCESS_PROCESSOR.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True
-    )
-    image_inputs, video_inputs = process_vision_info(messages)
-    inputs = _INPROCESS_PROCESSOR(
-        text=[text],
-        images=image_inputs,
-        videos=video_inputs,
-        padding=True,
-        return_tensors="pt",
-    ).to("cuda")
+    try:
+        inputs = _INPROCESS_PROCESSOR.apply_chat_template(
+            messages,
+            tokenize=True,
+            return_dict=True,
+            return_tensors="pt",
+            add_generation_prompt=True,
+            enable_thinking=False,
+        ).to("cuda")
+    except (TypeError, Exception):
+        inputs = _INPROCESS_PROCESSOR.apply_chat_template(
+            messages,
+            tokenize=True,
+            return_dict=True,
+            return_tensors="pt",
+            add_generation_prompt=True,
+        ).to("cuda")
 
     with torch.no_grad():
         generated_ids = _INPROCESS_MODEL.generate(
@@ -271,15 +287,13 @@ def extract_inprocess(image: Image.Image) -> dict:
             do_sample=False,
         )
 
-    generated_ids_trimmed = [
-        out_ids[len(in_ids) :]
-        for in_ids, out_ids in zip(inputs.input_ids, generated_ids)
-    ]
-    output_text = _INPROCESS_PROCESSOR.batch_decode(
-        generated_ids_trimmed,
+    input_len = inputs.input_ids.shape[-1]
+    generated_text_ids = generated_ids[0][input_len:]
+    output_text = _INPROCESS_PROCESSOR.decode(
+        generated_text_ids,
         skip_special_tokens=True,
         clean_up_tokenization_spaces=True,
-    )[0]
+    )
 
     content = clean_json_response(output_text)
     try:
