@@ -9,7 +9,7 @@ export default function Technology() {
           <span className="tile-tagline">Deep ML Systems Engineering</span>
           <h1 className="display-xl hero-display">Architectural Pipeline & Benchmark Audit</h1>
           <p className="tile-lead" style={{ maxWidth: 740 }}>
-            DOC-OC v2 replaces brittle multi-stage cascades (Canny contour cropping, YOLO logo classifiers, Haar cascades, TableTransformers, and regex) with a unified spatial Vision-Language Model pipeline running 100% locally on consumer GPUs.
+            DOC-OC v2 replaces brittle multi-stage cascades (Canny contour cropping, YOLO logo classifiers, Haar cascades, TableTransformers, and regex) with a unified spatial Vision-Language Model pipeline architected for edge GPU inference and low-cost deployment.
           </p>
         </div>
       </section>
@@ -40,7 +40,7 @@ export default function Technology() {
               <div className="step-number" style={{ color: '#22c55e' }}>02</div>
               <div className="step-title">C++ GBNF Constrained Inference</div>
               <div className="step-desc">
-                llama.cpp local server executing Gemma-4-E2B (100% GPU offload on RTX 4050). Token-level logit masking via GBNF grammar. Reasoning traces disabled to eliminate 1500+ token thinking lag.
+                Gemma-4-E2B execution with token-level logit masking via GBNF grammar. Reasoning traces disabled to eliminate 1500+ token thinking lag (achieving 83 tok/s on local reference GPU testbed).
               </div>
               <div style={{ fontSize: 11, fontFamily: 'monospace', color: '#22c55e', marginTop: 8 }}>
                 pipeline/extract.py
@@ -110,8 +110,70 @@ export default function Technology() {
         <div className="tile-content">
           <h2 className="display-lg">Multi-Board Model Comparison Matrix</h2>
           <p className="tile-lead" style={{ maxWidth: 700 }}>
-            Empirical benchmark evaluated on authentic multi-board Indian educational documents on an NVIDIA RTX 4050 Laptop GPU (6 GB VRAM) using llama.cpp with CUDA and FlashAttention-2.
+            Empirical benchmark evaluated on authentic multi-board Indian educational documents on a local reference testbed (consumer laptop GPU with 6 GB VRAM) using llama.cpp with CUDA and FlashAttention-2.
           </p>
+
+          {/* Cloud Instance Notice & YouTube Video Banner */}
+          <div style={{
+            marginTop: 16,
+            marginBottom: 20,
+            padding: '14px 18px',
+            background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, rgba(30, 41, 59, 0.7) 100%)',
+            border: '1px solid rgba(239, 68, 68, 0.28)',
+            borderRadius: 12,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 14,
+            width: '100%',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, flex: '1 1 380px' }}>
+              <div style={{
+                width: 30,
+                height: 30,
+                borderRadius: 8,
+                background: 'rgba(239, 68, 68, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ef4444',
+                flexShrink: 0
+              }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </div>
+              <div style={{ fontSize: 13, color: '#e2e8f0', lineHeight: 1.5 }}>
+                <strong style={{ color: '#f87171' }}>Local Benchmark Reference:</strong> The table below records metrics measured on an offline testbed. The public web app is deployed on a free cloud instance (subject to cold-start queueing), so latency will differ. Watch our recorded benchmark execution on YouTube for verified performance.
+              </div>
+            </div>
+
+            <a
+              href="https://youtu.be/OsfTcbbgvao"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#dc2626',
+                color: '#ffffff',
+                padding: '8px 16px',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 2px 8px rgba(220, 38, 38, 0.35)',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              Watch Benchmark Video ↗
+            </a>
+          </div>
 
           <div style={{ width: '100%', overflowX: 'auto', marginTop: 16 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: 14 }}>
@@ -239,7 +301,7 @@ export default function Technology() {
         <div className="tile-content">
           <h2 className="display-lg">Per-Board Warm Latency Breakdown</h2>
           <p className="tile-lead" style={{ maxWidth: 680 }}>
-            Audited execution duration across diverse Indian educational board marksheets on local RTX 4050 GPU:
+            Audited execution duration across diverse Indian educational board marksheets on local reference testbed (offline hardware):
           </p>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, width: '100%', marginTop: 12 }}>

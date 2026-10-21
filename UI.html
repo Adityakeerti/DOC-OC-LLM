@@ -997,7 +997,7 @@
       <div class="bench">
         <div>
           <h1>Production Benchmark & Architecture Audit</h1>
-          <p class="bench-lede">DOC-OC v2 evaluated across 10 authentic multi-board Indian educational boards on an NVIDIA RTX 4050 (6 GB Laptop GPU) using llama.cpp with CUDA, FlashAttention-2, and GBNF constrained logit grammar masking.</p>
+          <p class="bench-lede">DOC-OC v2 evaluated across authentic multi-board Indian educational boards on local reference testbed hardware using llama.cpp with CUDA, FlashAttention-2, and GBNF constrained logit grammar masking. Note: Deployed web instances on free cloud tiers experience cold-start and queue latency; for the verified real-time benchmark run, see the <a href="https://youtu.be/OsfTcbbgvao" target="_blank" rel="noopener noreferrer" style="color: #ef4444; font-weight: 600; text-decoration: underline;">YouTube Benchmark Demonstration</a>.</p>
         </div>
 
         <div class="strip c6">
@@ -1177,7 +1177,7 @@
           </div>
         </div>
 
-        <p class="foot">Benchmarked on an NVIDIA GeForce RTX 4050 Laptop GPU (6 GB VRAM, 75W TGP), CUDA 12.x, FlashAttention-2. Quantization: Q4_K_M. Constrained decoding: C++ GBNF grammar engine in llama-server. Cold start reflects initial model and context initialization. All extractions run 100% offline with zero external network dependencies.</p>
+        <p class="foot">Benchmarked on local reference hardware (CUDA 12.x, FlashAttention-2, Q4_K_M, C++ GBNF grammar engine). Note: Live cloud deployments run on shared free instances; latency will vary. Refer to the <a href="https://youtu.be/OsfTcbbgvao" target="_blank" rel="noopener noreferrer" style="color: #ef4444; text-decoration: underline;">YouTube benchmark video</a> for dedicated hardware execution.</p>
       </div>
     </section>
   </main>

@@ -14,8 +14,8 @@ export default function Home({ onNavigateToWorkspace, onNavigateToPipeline }: Ho
       a: "DOC-OC v2 is a local, privacy-first Vision-Language Model extraction engine designed specifically for complex Indian academic documents. Unlike legacy pipelines that chain together Canny contour deskewers, YOLO logo classifiers, Haar face detectors, TableTransformers, and hardcoded regex, DOC-OC v2 replaces the entire brittle cascade with an end-to-end spatial VLM (Gemma-4-E2B). This unifies layout understanding, text extraction, and semantic reasoning in a single pass."
     },
     {
-      q: "How does DOC-OC v2 achieve 6.28s extraction latency on consumer hardware?",
-      a: "Through three deep ML optimizations: (1) Eliminating reasoning token lag by disabling internal chain-of-thought tokens (--reasoning off, --reasoning-budget 0), which saves 1,500+ superfluous conversational tokens; (2) Non-destructive proportional Lanczos 1200px scaling, which reduces visual tokens by 43% (from 1,344 to 768 tokens) while preserving 8pt table font contrast; (3) 100% GPU offloading with FlashAttention-2 in llama.cpp, running at 83 tokens/second on an NVIDIA RTX 4050 6GB Laptop GPU."
+      q: "How does DOC-OC v2 achieve 6.28s extraction latency on dedicated hardware?",
+      a: "Through three deep ML optimizations benchmarked on dedicated local hardware: (1) Eliminating reasoning token lag by disabling internal chain-of-thought tokens (--reasoning off, --reasoning-budget 0), which saves 1,500+ superfluous conversational tokens; (2) Non-destructive proportional Lanczos 1200px scaling, which reduces visual tokens by 43% (from 1,344 to 768 tokens) while preserving 8pt table font contrast; (3) 100% GPU offloading with FlashAttention-2 in llama.cpp, running at 83 tokens/second on an offline edge GPU workstation. Please note: This public web deployment runs on a free cloud instance (subject to cold boots and shared server quotas), so live web latency will not match the benchmark. Watch the real-time offline benchmark run on YouTube (https://youtu.be/OsfTcbbgvao)."
     },
     {
       q: "What is C++ GBNF constrained logit grammar decoding?",
@@ -40,7 +40,7 @@ export default function Home({ onNavigateToWorkspace, onNavigateToPipeline }: Ho
           <h1 className="display-xl hero-display">Universal Indian Marksheet & Certificate Extractor</h1>
           <p className="tile-lead" style={{ maxWidth: 760 }}>
             High-Performance Vision-Language Model extraction engine for multi-board Indian academic transcripts.
-            Zero cloud OCR APIs • Zero regex • Zero cost-per-page • 100% offline edge GPU inference.
+            Zero cloud OCR APIs • Zero regex • Zero cost-per-page • Designed for edge and local GPU deployment.
           </p>
           <div className="hero-actions">
             <button className="btn-primary" onClick={onNavigateToWorkspace}>
@@ -49,6 +49,26 @@ export default function Home({ onNavigateToWorkspace, onNavigateToPipeline }: Ho
             <button className="btn-secondary" onClick={onNavigateToPipeline}>
               Explore 3-Pillar Architecture
             </button>
+            <a
+              href="https://youtu.be/OsfTcbbgvao"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-secondary"
+              style={{
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 7,
+                color: '#ffffff',
+                background: 'rgba(220, 38, 38, 0.25)',
+                border: '1px solid rgba(220, 38, 38, 0.5)',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="#ef4444">
+                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+              </svg>
+              Watch Benchmark Video
+            </a>
           </div>
 
           {/* Premium CSS Interactive Mock Visualization */}
@@ -120,7 +140,7 @@ export default function Home({ onNavigateToWorkspace, onNavigateToPipeline }: Ho
           <div className="stats-grid">
             <div className="stat-item">
               <span className="stat-num" style={{ color: '#22c55e' }}>6.28s</span>
-              <span className="stat-label">Warm Latency (4.32× Speedup)</span>
+              <span className="stat-label">Local Warm Latency (Ref)</span>
             </div>
             <div className="stat-item">
               <span className="stat-num" style={{ color: '#0099ff' }}>100%</span>
@@ -128,12 +148,15 @@ export default function Home({ onNavigateToWorkspace, onNavigateToPipeline }: Ho
             </div>
             <div className="stat-item">
               <span className="stat-num">3.2 GB</span>
-              <span className="stat-label">VRAM Footprint (100% GPU Offload)</span>
+              <span className="stat-label">Resident VRAM Footprint</span>
             </div>
             <div className="stat-item">
               <span className="stat-num" style={{ color: '#22c55e' }}>$0.00</span>
-              <span className="stat-label">Cost Per Page (Zero Cloud APIs)</span>
+              <span className="stat-label">Cost Per Page (Zero Paid APIs)</span>
             </div>
+          </div>
+          <div style={{ textAlign: 'center', marginTop: 14, fontSize: 12.5, color: 'var(--color-ink-muted)' }}>
+            ⚡ Benchmarks measured on dedicated local hardware. Deployed web demo runs on a free cloud instance with variable latency. <a href="https://youtu.be/OsfTcbbgvao" target="_blank" rel="noopener noreferrer" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 500 }}>Watch real-time YouTube benchmark run ↗</a>
           </div>
         </div>
       </section>
@@ -165,10 +188,10 @@ export default function Home({ onNavigateToWorkspace, onNavigateToPipeline }: Ho
               <div className="card-badge-dot" style={{ backgroundColor: '#22c55e' }}></div>
               <div className="card-title">2. C++ GBNF Constrained Inference</div>
               <div className="card-desc">
-                llama.cpp local server executing Gemma-4-E2B with 100% GPU offload. Token-level logit masking via GBNF JSON Schema makes syntax defects physically impossible. Disabled reasoning traces eliminate 1,500+ token thinking lag.
+                High-throughput execution of Gemma-4-E2B with token-level logit masking via GBNF JSON Schema, making syntax defects physically impossible. Disabled reasoning traces eliminate 1,500+ token thinking lag (83 tok/s on local reference GPU).
               </div>
               <div style={{ marginTop: 12, fontSize: 12, fontFamily: 'monospace', color: '#22c55e' }}>
-                pipeline/extract.py • 83 tok/s throughput
+                pipeline/extract.py • Deterministic Grammar
               </div>
             </div>
 

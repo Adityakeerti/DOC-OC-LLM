@@ -3,7 +3,7 @@ import type { PipelineStep } from './App'
 
 const STEP_META: Record<string, { icon: string; label: string; desc: string }> = {
   preprocess:     { icon: '✂️', label: 'Vector Preprocessing', desc: 'PyMuPDF 2× rasterization & Lanczos 1200px scaling' },
-  gpu_offload:    { icon: '⚡', label: 'Gemma-4-E2B GPU Offload', desc: '100% VRAM allocation via llama.cpp CUDA (3.2 GB)' },
+  gpu_offload:    { icon: '⚡', label: 'Gemma-4-E2B Inference', desc: 'VLM processing via cloud backend instance' },
   reasoning_opt:  { icon: '🚀', label: 'Zero Reasoning Lag', desc: 'Disabled thinking tokens for 4.32× speedup' },
   gbnf_grammar:   { icon: '🔒', label: 'C++ GBNF Logit Mask', desc: 'Token-level logit sampling guaranteeing RFC 8259 syntax' },
   spatial_ground: { icon: '📐', label: 'Spatial Layout Grounding', desc: 'Candidate vs Parent Y-offset disambiguation' },
@@ -130,17 +130,94 @@ export default function Workspace({
               <span className="tile-tagline" style={{ color: '#22c55e' }}>DOC-OC v2 • Unified Spatial VLM Engine</span>
               <h2 className="display-lg">Production Demo Workspace</h2>
               <p className="tile-lead" style={{ maxWidth: 620 }}>
-                Upload raw photographic marksheets, camera snaps, or multi-board PDFs to trigger the Gemma-4-E2B offline extraction engine.
+                Upload raw photographic marksheets, camera snaps, or multi-board PDFs to test the Gemma-4-E2B extraction engine on this cloud demo instance.
               </p>
             </div>
             
             <div style={{ display: 'flex', gap: 8, alignItems: 'center', background: 'var(--color-surface-1)', border: '1px solid var(--color-hairline)', borderRadius: 10, padding: '8px 14px' }}>
               <span className="visualizer-dot blinking"></span>
-              <span style={{ fontSize: 12, fontFamily: 'monospace', color: 'var(--color-ink)' }}>Gemma-4-E2B • RTX 4050 (3.2 GB)</span>
+              <span style={{ fontSize: 12, fontFamily: 'monospace', color: 'var(--color-ink)' }}>Gemma-4-E2B • Cloud Demo Server</span>
+              <span style={{ fontSize: 11, background: 'rgba(56,189,248,0.15)', color: '#38bdf8', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
+                Free Tier
+              </span>
               <span style={{ fontSize: 11, background: 'rgba(34,197,94,0.15)', color: '#22c55e', padding: '2px 8px', borderRadius: 4, fontWeight: 600 }}>
                 GBNF Constrained
               </span>
             </div>
+          </div>
+
+          {/* ── FREE CLOUD INSTANCE BENCHMARK NOTICE ── */}
+          <div style={{
+            marginTop: 20,
+            marginBottom: 6,
+            padding: '14px 18px',
+            background: 'linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, rgba(30, 41, 59, 0.7) 100%)',
+            border: '1px solid rgba(239, 68, 68, 0.28)',
+            borderRadius: 12,
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 14,
+            width: '100%',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12, flex: '1 1 420px' }}>
+              <div style={{
+                width: 32,
+                height: 32,
+                borderRadius: 8,
+                background: 'rgba(239, 68, 68, 0.18)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ef4444',
+                flexShrink: 0,
+                marginTop: 2
+              }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+              </div>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                  <span>Free Cloud Instance Notice</span>
+                  <span style={{ fontSize: 10, background: 'rgba(239, 68, 68, 0.25)', color: '#fca5a5', padding: '1px 7px', borderRadius: 4, fontWeight: 600, border: '1px solid rgba(239,68,68,0.35)' }}>
+                    Shared Tier • Cold Starts
+                  </span>
+                </div>
+                <p style={{ margin: '4px 0 0 0', fontSize: 12.5, color: '#cbd5e1', lineHeight: 1.5 }}>
+                  This web application is deployed on a free cloud instance, so latency and response times will not match our <strong>sub-7s edge benchmark</strong> achieved on dedicated local hardware. To observe true offline performance, refer to our benchmark recording.
+                </p>
+              </div>
+            </div>
+
+            <a
+              href="https://youtu.be/OsfTcbbgvao"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: '#dc2626',
+                color: '#ffffff',
+                padding: '9px 16px',
+                borderRadius: 8,
+                fontSize: 12,
+                fontWeight: 600,
+                textDecoration: 'none',
+                whiteSpace: 'nowrap',
+                boxShadow: '0 2px 8px rgba(220, 38, 38, 0.35)',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#b91c1c')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#dc2626')}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              Watch Benchmark Video on YouTube ↗
+            </a>
           </div>
 
           {/* ── LOADING TAKEOVER ── */}
@@ -249,7 +326,7 @@ export default function Workspace({
                 <div className="cell">
                   <div className="cell-label">Total Latency</div>
                   <div className="cell-val ok">{totalTiming}s</div>
-                  <div className="cell-sub ok">Warm inference</div>
+                  <div className="cell-sub ok">Server response</div>
                 </div>
                 <div className="cell">
                   <div className="cell-label">Preprocess</div>
@@ -268,14 +345,22 @@ export default function Workspace({
                 </div>
                 <div className="cell">
                   <div className="cell-label">Throughput</div>
-                  <div className="cell-val">83</div>
-                  <div className="cell-sub">tokens / sec</div>
+                  <div className="cell-val">~83</div>
+                  <div className="cell-sub">tok/s (Local ref)</div>
                 </div>
                 <div className="cell">
                   <div className="cell-label">C++ GBNF Status</div>
                   <div className="cell-val ok">100%</div>
                   <div className="cell-sub">RFC 8259 Compliant</div>
                 </div>
+              </div>
+
+              {/* Free Tier Telemetry Callout */}
+              <div style={{ fontSize: 11.5, color: 'var(--color-ink-muted)', marginTop: -10, marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 6 }}>
+                <span>* Measured from free cloud instance. Dedicated local hardware achieves 6.28s warm latency.</span>
+                <a href="https://youtu.be/OsfTcbbgvao" target="_blank" rel="noopener noreferrer" style={{ color: '#ef4444', textDecoration: 'none', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  ▶ Watch Verified Local Benchmark Video on YouTube
+                </a>
               </div>
 
               {/* Verification & Certification Status Banner */}
@@ -802,7 +887,7 @@ function LayoutVisualizer({ result, localInfo }: { result: any; localInfo: any }
 
         {/* Legend */}
         <text x={W / 2} y={H - 8} fontSize="7.5" fill="rgba(255,255,255,0.25)" textAnchor="middle" fontFamily="monospace">
-          Gemma-4-E2B Spatial Tokens • Edge Acceleration
+          Gemma-4-E2B Spatial Tokens • Layout Grounding
         </text>
       </svg>
       <style>{`
@@ -852,7 +937,7 @@ function PipelineStepList({ steps }: { steps: any[] }) {
     }}>
       <div style={{ padding: '12px 14px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--color-ink)' }}>DOC-OC v2 Pipeline In-Flight</span>
-        <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#0099ff' }}>RTX 4050 CUDA</span>
+        <span style={{ fontSize: 11, fontFamily: 'monospace', color: '#0099ff' }}>Cloud Demo Instance</span>
       </div>
 
       {steps.map((s, i) => {
@@ -1032,7 +1117,7 @@ function LoadingDocMock({ steps, previewUrl }: { steps: any[]; previewUrl?: stri
       </div>
 
       <span style={{ fontSize: 11, color: 'var(--color-ink-muted)', fontFamily: 'monospace' }}>
-        83 tokens/sec • FlashAttention-2
+        Cloud VLM Server • GBNF Masked
       </span>
 
       <style>{`

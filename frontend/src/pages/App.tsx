@@ -18,7 +18,7 @@ export type PipelineStep = {
 
 const INITIAL_STEPS: PipelineStep[] = [
   { step: 'preprocess', status: 'idle', label: '1. High-Fidelity Vector Preprocessing', detail: 'PyMuPDF 2.5× rasterization & Lanczos scaling' },
-  { step: 'gpu_offload', status: 'idle', label: '2. Gemma-4-E2B Context Allocation', detail: 'Local GPU offload via llama.cpp CUDA (3.2 GB footprint)' },
+  { step: 'gpu_offload', status: 'idle', label: '2. Gemma-4-E2B Context Allocation', detail: 'VLM context allocation & inference execution' },
   { step: 'reasoning_opt', status: 'idle', label: '3. Direct Token Generation', detail: 'Bypassing conversational thinking tokens for lower latency' },
   { step: 'gbnf_grammar', status: 'idle', label: '4. C++ GBNF Logit Grammar Masking', detail: 'Logit-level sampling enforcing RFC 8259 syntax' },
   { step: 'spatial_ground', status: 'idle', label: '5. Multi-Board Spatial Layout Grounding', detail: 'Spatial disambiguation of candidate and guardian fields' },
@@ -270,9 +270,33 @@ export default function App() {
             </button>
           ) : (
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <span style={{ fontSize: 11, color: '#22c55e', background: 'rgba(34,197,94,0.1)', padding: '4px 8px', borderRadius: 4, fontWeight: 600 }}>
-                RTX 4050 CUDA
+              <span style={{ fontSize: 11, color: '#38bdf8', background: 'rgba(56,189,248,0.1)', padding: '4px 8px', borderRadius: 4, fontWeight: 600, border: '1px solid rgba(56,189,248,0.2)' }}>
+                Cloud Instance
               </span>
+              <a
+                href="https://youtu.be/OsfTcbbgvao"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  fontSize: 11,
+                  color: '#ffffff',
+                  background: '#dc2626',
+                  padding: '4px 10px',
+                  borderRadius: 4,
+                  fontWeight: 600,
+                  textDecoration: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  boxShadow: '0 2px 6px rgba(220, 38, 38, 0.3)'
+                }}
+                title="Watch local benchmark video on YouTube"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+                Benchmark Video
+              </a>
             </div>
           )}
         </div>
@@ -330,6 +354,10 @@ export default function App() {
             Offline Edge VLM Architecture • Deterministic GBNF Parsing • Self-Healing Arithmetic • Apache-2.0 License
           </p>
           <div className="footer-links">
+            <a href="https://youtu.be/OsfTcbbgvao" target="_blank" rel="noopener noreferrer" className="text-link" style={{ color: '#ef4444', fontWeight: 500 }}>
+              YouTube Benchmark Video
+            </a>
+            <span className="bullet-divider">•</span>
             <a href="https://adityakeerti.vercel.app" target="_blank" rel="noopener noreferrer" className="text-link">Developer Portfolio</a>
             <span className="bullet-divider">•</span>
             <a href="https://github.com/Adityakeerti/DOC-OC-LLM" target="_blank" rel="noopener noreferrer" className="text-link">GitHub Source</a>

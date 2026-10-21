@@ -59,6 +59,8 @@ console.log(\`Processed in \${timing.extract}s via Gemma-4-E2B\`);`
               Architected DOC-OC v2 — pioneering offline edge Vision-Language Model inference with C++ GBNF grammar constrained decoding, ShortGPT layer redundancy profiling, and self-healing document validation.
             </p>
             <div className="dev-socials">
+              <a href="https://youtu.be/OsfTcbbgvao" target="_blank" rel="noopener noreferrer" className="text-link" style={{ color: '#ef4444', fontWeight: 600 }}>YouTube Benchmark</a>
+              <span className="bullet-divider">•</span>
               <a href="https://adityakeerti.vercel.app" target="_blank" rel="noopener noreferrer" className="text-link">Portfolio</a>
               <span className="bullet-divider">•</span>
               <a href="https://github.com/Adityakeerti/DOC-OC-LLM" target="_blank" rel="noopener noreferrer" className="text-link">GitHub Repository</a>
@@ -121,9 +123,9 @@ console.log(\`Processed in \${timing.extract}s via Gemma-4-E2B\`);`
             {/* Right Column: Local Inference Engine Setup */}
             <div className="gradient-spotlight-card">
               <div className="card-badge-dot" style={{ backgroundColor: '#22c55e' }}></div>
-              <div className="card-title">Run 100% Offline with Zero Cloud Costs</div>
+              <div className="card-title">Run Locally for Sub-7s Edge Inference</div>
               <p className="card-desc" style={{ fontSize: 14, color: 'rgba(255, 255, 255, 0.85)', lineHeight: 1.5, marginBottom: 12 }}>
-                Launch Gemma-4-E2B locally with 100% GPU offload on an NVIDIA GPU (≥6 GB VRAM) with FlashAttention-2:
+                To achieve the 6.28s extraction latency showcased in our <a href="https://youtu.be/OsfTcbbgvao" target="_blank" rel="noopener noreferrer" style={{ color: '#ef4444', textDecoration: 'underline', fontWeight: 600 }}>YouTube Benchmark Demonstration</a>, run Gemma-4-E2B locally with full GPU offload:
               </p>
               
               <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: 8, padding: '12px 16px', fontFamily: 'monospace', fontSize: 12, color: '#38bdf8', marginBottom: 16 }}>
